@@ -7,12 +7,23 @@ import (
 type contextKey string
 
 const (
+	fileContextKey           = contextKey("file")
 	commentsContextKey       = contextKey("comments")
 	locationPrefixContextKey = contextKey("locationPrefix")
-	packageContextKey        = contextKey("package")
 	serviceContextKey        = contextKey("service")
 	messageContextKey        = contextKey("message")
 )
+
+// ContextWithFileDescriptor returns a new context with the attached `FileDescriptor`
+func ContextWithFileDescriptor(ctx context.Context, fd *FileDescriptor) context.Context {
+	return context.WithValue(ctx, fileContextKey, fd)
+}
+
+// FileDescriptorFromContext returns the `FileDescriptor` from the context and whether or not the key was found.
+func FileDescriptorFromContext(ctx context.Context) (*FileDescriptor, bool) {
+	val, ok := ctx.Value(fileContextKey).(*FileDescriptor)
+	return val, ok
+}
 
 // ContextWithComments returns a new context with `comments`
 func ContextWithComments(ctx context.Context, comments Comments) context.Context {
@@ -33,17 +44,6 @@ func ContextWithLocationPrefix(ctx context.Context, locationPrefix string) conte
 // LocationPrefixFromContext returns the `LocationPrefix` from the context and whether or not the key was found.
 func LocationPrefixFromContext(ctx context.Context) (string, bool) {
 	val, ok := ctx.Value(locationPrefixContextKey).(string)
-	return val, ok
-}
-
-// ContextWithPackage returns a new context with `package`
-func ContextWithPackage(ctx context.Context, pkg string) context.Context {
-	return context.WithValue(ctx, packageContextKey, pkg)
-}
-
-// PackageFromContext returns the `Package` from the context and whether or not the key was found.
-func PackageFromContext(ctx context.Context) (string, bool) {
-	val, ok := ctx.Value(packageContextKey).(string)
 	return val, ok
 }
 

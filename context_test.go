@@ -17,6 +17,19 @@ func TestContext(t *testing.T) {
 	suite.Run(t, new(ContextTest))
 }
 
+func (assert *ContextTest) TestContextWithFileDescriptor() {
+	ctx := context.Background()
+
+	val, found := protokit.FileDescriptorFromContext(ctx)
+	assert.Nil(val)
+	assert.False(found)
+
+	ctx = protokit.ContextWithFileDescriptor(ctx, new(protokit.FileDescriptor))
+	val, found = protokit.FileDescriptorFromContext(ctx)
+	assert.NotNil(val)
+	assert.True(found)
+}
+
 func (assert *ContextTest) TestContextWithComments() {
 	ctx := context.Background()
 
@@ -40,19 +53,6 @@ func (assert *ContextTest) TestContextWithLocationPrefix() {
 	ctx = protokit.ContextWithLocationPrefix(ctx, "prefix")
 	val, found = protokit.LocationPrefixFromContext(ctx)
 	assert.Equal("prefix", val)
-	assert.True(found)
-}
-
-func (assert *ContextTest) TestContextWithPackage() {
-	ctx := context.Background()
-
-	val, found := protokit.PackageFromContext(ctx)
-	assert.Empty(val)
-	assert.False(found)
-
-	ctx = protokit.ContextWithPackage(ctx, "package")
-	val, found = protokit.PackageFromContext(ctx)
-	assert.Equal("package", val)
 	assert.True(found)
 }
 

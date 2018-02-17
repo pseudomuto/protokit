@@ -32,13 +32,13 @@ const (
 func ParseFile(fd *descriptor.FileDescriptorProto) *FileDescriptor {
 	comments := ParseComments(fd)
 	ctx := ContextWithComments(context.Background(), comments)
-	ctx = ContextWithPackage(ctx, fd.GetPackage())
 
 	file := &FileDescriptor{
 		FileDescriptorProto: fd,
 		Description:         comments[fmt.Sprintf("%d", packageCommentPath)],
 	}
 
+	ctx = ContextWithFileDescriptor(ctx, file)
 	file.Enums = parseEnums(ctx, fd.GetEnumType())
 	file.Messages = parseMessages(ctx, fd.GetMessageType())
 	file.Services = parseServices(ctx, fd.GetService())
@@ -48,8 +48,8 @@ func ParseFile(fd *descriptor.FileDescriptorProto) *FileDescriptor {
 
 func parseEnums(ctx context.Context, protos []*descriptor.EnumDescriptorProto) []*EnumDescriptor {
 	enums := make([]*EnumDescriptor, len(protos))
+	file, _ := FileDescriptorFromContext(ctx)
 	comments, _ := CommentsFromContext(ctx)
-	pkg, _ := PackageFromContext(ctx)
 	commentPrefix, hasPrefix := LocationPrefixFromContext(ctx)
 	message, hasMessage := MessageFromContext(ctx)
 
@@ -63,10 +63,10 @@ func parseEnums(ctx context.Context, protos []*descriptor.EnumDescriptorProto) [
 		subCtx := ContextWithLocationPrefix(ctx, commentPath)
 
 		enums[i] = &EnumDescriptor{
+			common:              common{file},
 			EnumDescriptorProto: ed,
 			Values:              parseEnumValues(subCtx, ed.GetValue()),
 			Description:         comments[commentPath],
-			Package:             pkg,
 		}
 
 		if hasMessage && !strings.Contains(enums[i].GetName(), ".") {
@@ -79,11 +79,13 @@ func parseEnums(ctx context.Context, protos []*descriptor.EnumDescriptorProto) [
 
 func parseEnumValues(ctx context.Context, protos []*descriptor.EnumValueDescriptorProto) []*EnumValueDescriptor {
 	values := make([]*EnumValueDescriptor, len(protos))
+	file, _ := FileDescriptorFromContext(ctx)
 	comments, _ := CommentsFromContext(ctx)
 	commentPrefix, _ := LocationPrefixFromContext(ctx)
 
 	for i, vd := range protos {
 		values[i] = &EnumValueDescriptor{
+			common: common{file},
 			EnumValueDescriptorProto: vd,
 			Description:              comments[fmt.Sprintf("%s.%d.%d", commentPrefix, enumValueCommentPath, i)],
 		}
@@ -94,10 +96,10 @@ func parseEnumValues(ctx context.Context, protos []*descriptor.EnumValueDescript
 
 func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []*Descriptor {
 	msgs := make([]*Descriptor, len(protos))
+	file, _ := FileDescriptorFromContext(ctx)
 	comments, _ := CommentsFromContext(ctx)
 	commentPrefix, hasPrefix := LocationPrefixFromContext(ctx)
 	message, hasMessage := MessageFromContext(ctx)
-	pkg, _ := PackageFromContext(ctx)
 
 	for i, md := range protos {
 		commentPath := fmt.Sprintf("%d.%d", messageCommentPath, i)
@@ -110,12 +112,12 @@ func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []
 		msgCtx := ContextWithMessage(ContextWithLocationPrefix(ctx, commentPath), md.GetName())
 
 		msgs[i] = &Descriptor{
+			common:          common{file},
 			DescriptorProto: md,
 			Description:     comments[commentPath],
 			Enums:           parseEnums(enumCtx, md.GetEnumType()),
 			Fields:          parseMessageFields(msgCtx, md.GetField()),
 			Messages:        parseMessages(msgCtx, md.GetNestedType()),
-			Package:         pkg,
 		}
 
 		if hasMessage && !strings.Contains(msgs[i].GetName(), ".") {
@@ -128,11 +130,13 @@ func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []
 
 func parseMessageFields(ctx context.Context, protos []*descriptor.FieldDescriptorProto) []*FieldDescriptor {
 	fields := make([]*FieldDescriptor, len(protos))
+	file, _ := FileDescriptorFromContext(ctx)
 	comments, _ := CommentsFromContext(ctx)
 	commentPrefix, _ := LocationPrefixFromContext(ctx)
 
 	for i, fd := range protos {
 		fields[i] = &FieldDescriptor{
+			common:               common{file},
 			FieldDescriptorProto: fd,
 			Description:          comments[fmt.Sprintf("%s.%d.%d", commentPrefix, messageFieldCommentPath, i)],
 		}
@@ -143,8 +147,8 @@ func parseMessageFields(ctx context.Context, protos []*descriptor.FieldDescripto
 
 func parseServices(ctx context.Context, protos []*descriptor.ServiceDescriptorProto) []*ServiceDescriptor {
 	svcs := make([]*ServiceDescriptor, len(protos))
+	file, _ := FileDescriptorFromContext(ctx)
 	comments, _ := CommentsFromContext(ctx)
-	pkg, _ := PackageFromContext(ctx)
 
 	for i, sd := range protos {
 		commentPath := fmt.Sprintf("%d.%d", serviceCommentPath, i)
@@ -152,10 +156,10 @@ func parseServices(ctx context.Context, protos []*descriptor.ServiceDescriptorPr
 		subCtx = ContextWithService(subCtx, sd.GetName())
 
 		svcs[i] = &ServiceDescriptor{
+			common:                 common{file},
 			ServiceDescriptorProto: sd,
 			Description:            comments[commentPath],
 			Methods:                parseServiceMethods(subCtx, sd.GetMethod()),
-			Package:                pkg,
 		}
 	}
 
@@ -165,16 +169,17 @@ func parseServices(ctx context.Context, protos []*descriptor.ServiceDescriptorPr
 func parseServiceMethods(ctx context.Context, protos []*descriptor.MethodDescriptorProto) []*MethodDescriptor {
 	methods := make([]*MethodDescriptor, len(protos))
 
-	pkg, _ := PackageFromContext(ctx)
+	file, _ := FileDescriptorFromContext(ctx)
 	svc, _ := ServiceFromContext(ctx)
 	comments, _ := CommentsFromContext(ctx)
 	commentPrefix, _ := LocationPrefixFromContext(ctx)
 
 	for i, md := range protos {
 		methods[i] = &MethodDescriptor{
+			common:                common{file},
 			MethodDescriptorProto: md,
 			Description:           comments[fmt.Sprintf("%s.%d.%d", commentPrefix, serviceMethodCommentPath, i)],
-			URL:                   fmt.Sprintf("/%s.%s/%s", pkg, svc, md.GetName()),
+			URL:                   fmt.Sprintf("/%s.%s/%s", file.GetPackage(), svc, md.GetName()),
 			InputRef:              typeRef(md.GetInputType()),
 			OutputRef:             typeRef(md.GetOutputType()),
 		}

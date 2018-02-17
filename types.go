@@ -6,6 +6,14 @@ import (
 	"fmt"
 )
 
+type common struct {
+	file *FileDescriptor
+}
+
+func (c *common) GetFile() *FileDescriptor { return c.file }
+func (c *common) GetPackage() string       { return c.file.GetPackage() }
+func (c *common) IsProto3() bool           { return c.file.GetSyntax() == "proto3" }
+
 // A TypeReference represents a reference to a type. It includes the package, name, and whether or not the reference is
 // fully qualified (name starts with a ".").
 type TypeReference struct {
@@ -31,6 +39,9 @@ type FileDescriptor struct {
 	Messages    []*Descriptor
 	Services    []*ServiceDescriptor
 }
+
+// IsProto3 returns whether or not this file is a proto3 file
+func (f *FileDescriptor) IsProto3() bool { return f.GetSyntax() == "proto3" }
 
 // GetDescription returns the file's package comments
 func (f *FileDescriptor) GetDescription() string { return f.Description }
@@ -79,17 +90,14 @@ func (f *FileDescriptor) GetService(name string) *ServiceDescriptor {
 
 // An EnumDescriptor describe an enum type
 type EnumDescriptor struct {
+	common
 	*descriptor.EnumDescriptorProto
 	Values      []*EnumValueDescriptor
 	Description string
-	Package     string
 }
 
 // GetDescription returns a description of this enum
 func (e *EnumDescriptor) GetDescription() string { return e.Description }
-
-// GetPackage returns the package this enum belongs to
-func (e *EnumDescriptor) GetPackage() string { return e.Package }
 
 // GetValues returns the available values for this enum
 func (e *EnumDescriptor) GetValues() []*EnumValueDescriptor { return e.Values }
@@ -107,6 +115,7 @@ func (e *EnumDescriptor) GetNamedValue(name string) *EnumValueDescriptor {
 
 // An EnumValueDescriptor describes an enum value
 type EnumValueDescriptor struct {
+	common
 	*descriptor.EnumValueDescriptorProto
 	Description string
 }
@@ -116,12 +125,12 @@ func (v *EnumValueDescriptor) GetDescription() string { return v.Description }
 
 // A Descriptor describes a message
 type Descriptor struct {
+	common
 	*descriptor.DescriptorProto
 	Description string
 	Enums       []*EnumDescriptor
 	Fields      []*FieldDescriptor
 	Messages    []*Descriptor
-	Package     string
 }
 
 // GetDescription returns a description of the message
@@ -135,9 +144,6 @@ func (m *Descriptor) GetMessages() []*Descriptor { return m.Messages }
 
 // GetMessageFields returns the message fields
 func (m *Descriptor) GetMessageFields() []*FieldDescriptor { return m.Fields }
-
-// GetPackage returns the package this message belongs to
-func (m *Descriptor) GetPackage() string { return m.Package }
 
 // GetEnum returns the enum with the specified name. The name can be either simple, or fully qualified (returns `nil` if
 // not found)
@@ -182,6 +188,7 @@ func (m *Descriptor) GetMessageField(name string) *FieldDescriptor {
 
 // A FieldDescriptor describes a message field
 type FieldDescriptor struct {
+	common
 	*descriptor.FieldDescriptorProto
 	Description string
 }
@@ -191,10 +198,10 @@ func (mf *FieldDescriptor) GetDescription() string { return mf.Description }
 
 // A ServiceDescriptor describes a service
 type ServiceDescriptor struct {
+	common
 	*descriptor.ServiceDescriptorProto
 	Description string
 	Methods     []*MethodDescriptor
-	Package     string
 }
 
 // GetDescription returns a description of the service
@@ -203,11 +210,9 @@ func (s *ServiceDescriptor) GetDescription() string { return s.Description }
 // GetMethods returns the methods for the service
 func (s *ServiceDescriptor) GetMethods() []*MethodDescriptor { return s.Methods }
 
-// GetPackage returns the package the service is in
-func (s *ServiceDescriptor) GetPackage() string { return s.Package }
-
 // A MethodDescriptor describes a method in a service
 type MethodDescriptor struct {
+	common
 	*descriptor.MethodDescriptorProto
 	InputRef    *TypeReference
 	OutputRef   *TypeReference
