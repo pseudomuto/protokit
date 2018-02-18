@@ -7,14 +7,35 @@ import (
 )
 
 type common struct {
-	file  *FileDescriptor
-	index int
-	path  string
+	file     *FileDescriptor
+	path     string
+	LongName string
+	FullName string
 }
 
+func newCommon(f *FileDescriptor, path, longName string) common {
+	return common{
+		file:     f,
+		path:     path,
+		LongName: longName,
+		FullName: fmt.Sprintf("%s.%s", f.GetPackage(), longName),
+	}
+}
+
+// GetFile returns the FileDescriptor that contains this object
 func (c *common) GetFile() *FileDescriptor { return c.file }
-func (c *common) GetPackage() string       { return c.file.GetPackage() }
-func (c *common) IsProto3() bool           { return c.file.GetSyntax() == "proto3" }
+
+// GetPackage returns the package this object is in
+func (c *common) GetPackage() string { return c.file.GetPackage() }
+
+// GetLongName returns the name prefixed with the dot-separated parent descriptor's name (if any)
+func (c *common) GetLongName() string { return c.LongName }
+
+// GetFullName returns the `LongName` prefixed with the package this object is in
+func (c *common) GetFullName() string { return c.FullName }
+
+// IsProto3 returns whether or not this is a proto3 object
+func (c *common) IsProto3() bool { return c.file.GetSyntax() == "proto3" }
 
 // A FileDescriptor describes a single proto file with all of its messages, enums, services, etc.
 type FileDescriptor struct {
@@ -44,7 +65,7 @@ func (f *FileDescriptor) GetServices() []*ServiceDescriptor { return f.Services 
 // GetEnum returns the enumeration with the specified name (returns `nil` if not found)
 func (f *FileDescriptor) GetEnum(name string) *EnumDescriptor {
 	for _, e := range f.GetEnums() {
-		if e.GetName() == name {
+		if e.GetName() == name || e.GetLongName() == name {
 			return e
 		}
 	}
@@ -55,7 +76,7 @@ func (f *FileDescriptor) GetEnum(name string) *EnumDescriptor {
 // GetMessage returns the message with the specified name (returns `nil` if not found)
 func (f *FileDescriptor) GetMessage(name string) *Descriptor {
 	for _, m := range f.GetMessages() {
-		if m.GetName() == name {
+		if m.GetName() == name || m.GetLongName() == name {
 			return m
 		}
 	}
@@ -66,7 +87,7 @@ func (f *FileDescriptor) GetMessage(name string) *Descriptor {
 // GetService returns the service with the specified name (returns `nil` if not found)
 func (f *FileDescriptor) GetService(name string) *ServiceDescriptor {
 	for _, s := range f.GetServices() {
-		if s.GetName() == name {
+		if s.GetName() == name || s.GetLongName() == name {
 			return s
 		}
 	}
@@ -146,11 +167,9 @@ func (m *Descriptor) GetMessageFields() []*FieldDescriptor { return m.Fields }
 // GetEnum returns the enum with the specified name. The name can be either simple, or fully qualified (returns `nil` if
 // not found)
 func (m *Descriptor) GetEnum(name string) *EnumDescriptor {
-	qn := fmt.Sprintf("%s.%s", m.GetName(), name)
-
 	for _, e := range m.GetEnums() {
 		// can lookup by name or message prefixed name (qualified)
-		if e.GetName() == name || e.GetName() == qn {
+		if e.GetName() == name || e.GetLongName() == name {
 			return e
 		}
 	}
@@ -161,11 +180,9 @@ func (m *Descriptor) GetEnum(name string) *EnumDescriptor {
 // GetMessage returns the nested message with the specified name. The name can be simple or fully qualified (returns
 // `nil` if not found)
 func (m *Descriptor) GetMessage(name string) *Descriptor {
-	qn := fmt.Sprintf("%s.%s", m.GetName(), name)
-
 	for _, msg := range m.GetMessages() {
 		// can lookup by name or message prefixed name (qualified)
-		if msg.GetName() == name || msg.GetName() == qn {
+		if msg.GetName() == name || msg.GetLongName() == name {
 			return msg
 		}
 	}
@@ -176,7 +193,7 @@ func (m *Descriptor) GetMessage(name string) *Descriptor {
 // GetMessageField returns the field with the specified name (returns `nil` if not found)
 func (m *Descriptor) GetMessageField(name string) *FieldDescriptor {
 	for _, f := range m.GetMessageFields() {
-		if f.GetName() == name {
+		if f.GetName() == name || f.GetLongName() == name {
 			return f
 		}
 	}
@@ -211,6 +228,17 @@ func (s *ServiceDescriptor) GetDescription() string { return s.Description }
 
 // GetMethods returns the methods for the service
 func (s *ServiceDescriptor) GetMethods() []*MethodDescriptor { return s.Methods }
+
+// GetNamedMethod returns the method with the specified name (if found)
+func (s *ServiceDescriptor) GetNamedMethod(name string) *MethodDescriptor {
+	for _, m := range s.GetMethods() {
+		if m.GetName() == name || m.GetLongName() == name {
+			return m
+		}
+	}
+
+	return nil
+}
 
 // A MethodDescriptor describes a method in a service
 type MethodDescriptor struct {

@@ -1,12 +1,10 @@
 package protokit
 
 import (
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 
 	"context"
 	"fmt"
-	"strings"
 )
 
 const (
@@ -52,14 +50,16 @@ func parseEnums(ctx context.Context, protos []*descriptor.EnumDescriptorProto) [
 	parent, hasParent := DescriptorFromContext(ctx)
 
 	for i, ed := range protos {
+		longName := ed.GetName()
 		commentPath := fmt.Sprintf("%d.%d", enumCommentPath, i)
 
 		if hasParent {
+			longName = fmt.Sprintf("%s.%s", parent.GetLongName(), longName)
 			commentPath = fmt.Sprintf("%s.%d.%d", parent.path, messageEnumCommentPath, i)
 		}
 
 		enums[i] = &EnumDescriptor{
-			common:              common{file: file, index: i, path: commentPath},
+			common:              newCommon(file, commentPath, longName),
 			EnumDescriptorProto: ed,
 			Description:         file.comments[commentPath],
 			Parent:              parent,
@@ -67,10 +67,6 @@ func parseEnums(ctx context.Context, protos []*descriptor.EnumDescriptorProto) [
 
 		subCtx := ContextWithEnumDescriptor(ctx, enums[i])
 		enums[i].Values = parseEnumValues(subCtx, ed.GetValue())
-
-		if hasParent && !strings.Contains(enums[i].GetName(), ".") {
-			enums[i].Name = proto.String(fmt.Sprintf("%s.%s", parent.GetName(), ed.GetName()))
-		}
 	}
 
 	return enums
@@ -82,8 +78,10 @@ func parseEnumValues(ctx context.Context, protos []*descriptor.EnumValueDescript
 	enum, _ := EnumDescriptorFromContext(ctx)
 
 	for i, vd := range protos {
+		longName := fmt.Sprintf("%s.%s", enum.GetLongName(), vd.GetName())
+
 		values[i] = &EnumValueDescriptor{
-			common: common{file: file, index: i},
+			common: newCommon(file, "", longName),
 			EnumValueDescriptorProto: vd,
 			Enum:        enum,
 			Description: file.comments[fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)],
@@ -99,13 +97,16 @@ func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []
 	parent, hasParent := DescriptorFromContext(ctx)
 
 	for i, md := range protos {
+		longName := md.GetName()
 		commentPath := fmt.Sprintf("%d.%d", messageCommentPath, i)
+
 		if hasParent {
+			longName = fmt.Sprintf("%s.%s", parent.GetLongName(), longName)
 			commentPath = fmt.Sprintf("%s.%d.%d", parent.path, messageMessageCommentPath, i)
 		}
 
 		msgs[i] = &Descriptor{
-			common:          common{file: file, index: i, path: commentPath},
+			common:          newCommon(file, commentPath, longName),
 			DescriptorProto: md,
 			Description:     file.comments[commentPath],
 			Parent:          parent,
@@ -115,10 +116,6 @@ func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []
 		msgs[i].Fields = parseMessageFields(msgCtx, md.GetField())
 		msgs[i].Messages = parseMessages(msgCtx, md.GetNestedType())
 		msgs[i].Enums = parseEnums(msgCtx, md.GetEnumType())
-
-		if hasParent && !strings.Contains(msgs[i].GetName(), ".") {
-			msgs[i].Name = proto.String(fmt.Sprintf("%s.%s", parent.GetName(), md.GetName()))
-		}
 	}
 
 	return msgs
@@ -130,8 +127,10 @@ func parseMessageFields(ctx context.Context, protos []*descriptor.FieldDescripto
 	message, _ := DescriptorFromContext(ctx)
 
 	for i, fd := range protos {
+		longName := fmt.Sprintf("%s.%s", message.GetLongName(), fd.GetName())
+
 		fields[i] = &FieldDescriptor{
-			common:               common{file: file, index: i},
+			common:               newCommon(file, "", longName),
 			FieldDescriptorProto: fd,
 			Description:          file.comments[fmt.Sprintf("%s.%d.%d", message.path, messageFieldCommentPath, i)],
 			Message:              message,
@@ -146,10 +145,11 @@ func parseServices(ctx context.Context, protos []*descriptor.ServiceDescriptorPr
 	file, _ := FileDescriptorFromContext(ctx)
 
 	for i, sd := range protos {
+		longName := sd.GetName()
 		commentPath := fmt.Sprintf("%d.%d", serviceCommentPath, i)
 
 		svcs[i] = &ServiceDescriptor{
-			common:                 common{file: file, index: i, path: commentPath},
+			common:                 newCommon(file, commentPath, longName),
 			ServiceDescriptorProto: sd,
 			Description:            file.comments[commentPath],
 		}
@@ -168,8 +168,10 @@ func parseServiceMethods(ctx context.Context, protos []*descriptor.MethodDescrip
 	svc, _ := ServiceDescriptorFromContext(ctx)
 
 	for i, md := range protos {
+		longName := fmt.Sprintf("%s.%s", svc.GetLongName(), md.GetName())
+
 		methods[i] = &MethodDescriptor{
-			common:                common{file: file, index: i},
+			common:                newCommon(file, "", longName),
 			MethodDescriptorProto: md,
 			Service:               svc,
 			Description:           file.comments[fmt.Sprintf("%s.%d.%d", svc.path, serviceMethodCommentPath, i)],
