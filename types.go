@@ -7,32 +7,18 @@ import (
 )
 
 type common struct {
-	file *FileDescriptor
+	file  *FileDescriptor
+	index int
+	path  string
 }
 
 func (c *common) GetFile() *FileDescriptor { return c.file }
 func (c *common) GetPackage() string       { return c.file.GetPackage() }
 func (c *common) IsProto3() bool           { return c.file.GetSyntax() == "proto3" }
 
-// A TypeReference represents a reference to a type. It includes the package, name, and whether or not the reference is
-// fully qualified (name starts with a ".").
-type TypeReference struct {
-	Package        string // The package name (if available)
-	TypeName       string // The name (without package)
-	FullyQualified bool   // Whether or not the reference is full qualified
-}
-
-// GetPackage returns the package name (if available)
-func (tr *TypeReference) GetPackage() string { return tr.Package }
-
-// GetTypeName returns the name of the type (without the package)
-func (tr *TypeReference) GetTypeName() string { return tr.TypeName }
-
-// GetFullyQualified returns whether or not the type if fully-qualified
-func (tr *TypeReference) GetFullyQualified() bool { return tr.FullyQualified }
-
 // A FileDescriptor describes a single proto file with all of its messages, enums, services, etc.
 type FileDescriptor struct {
+	comments Comments
 	*descriptor.FileDescriptorProto
 	Description string
 	Enums       []*EnumDescriptor
@@ -92,12 +78,16 @@ func (f *FileDescriptor) GetService(name string) *ServiceDescriptor {
 type EnumDescriptor struct {
 	common
 	*descriptor.EnumDescriptorProto
+	Parent      *Descriptor
 	Values      []*EnumValueDescriptor
 	Description string
 }
 
 // GetDescription returns a description of this enum
 func (e *EnumDescriptor) GetDescription() string { return e.Description }
+
+// GetParent returns the parent message (if any) that contains this enum
+func (e *EnumDescriptor) GetParent() *Descriptor { return e.Parent }
 
 // GetValues returns the available values for this enum
 func (e *EnumDescriptor) GetValues() []*EnumValueDescriptor { return e.Values }
@@ -117,16 +107,21 @@ func (e *EnumDescriptor) GetNamedValue(name string) *EnumValueDescriptor {
 type EnumValueDescriptor struct {
 	common
 	*descriptor.EnumValueDescriptorProto
+	Enum        *EnumDescriptor
 	Description string
 }
 
 // GetDescription returns a description of the value
 func (v *EnumValueDescriptor) GetDescription() string { return v.Description }
 
+// GetEnum returns the parent enumeration that contains this value
+func (v *EnumValueDescriptor) GetEnum() *EnumDescriptor { return v.Enum }
+
 // A Descriptor describes a message
 type Descriptor struct {
 	common
 	*descriptor.DescriptorProto
+	Parent      *Descriptor
 	Description string
 	Enums       []*EnumDescriptor
 	Fields      []*FieldDescriptor
@@ -135,6 +130,9 @@ type Descriptor struct {
 
 // GetDescription returns a description of the message
 func (m *Descriptor) GetDescription() string { return m.Description }
+
+// GetParent returns the parent descriptor (if any) that defines this descriptor
+func (m *Descriptor) GetParent() *Descriptor { return m.Parent }
 
 // GetEnums returns the nested enumerations within the message
 func (m *Descriptor) GetEnums() []*EnumDescriptor { return m.Enums }
@@ -191,10 +189,14 @@ type FieldDescriptor struct {
 	common
 	*descriptor.FieldDescriptorProto
 	Description string
+	Message     *Descriptor
 }
 
 // GetDescription returns a description of the field
 func (mf *FieldDescriptor) GetDescription() string { return mf.Description }
+
+// GetMessage returns the descriptor that defines this field
+func (mf *FieldDescriptor) GetMessage() *Descriptor { return mf.Message }
 
 // A ServiceDescriptor describes a service
 type ServiceDescriptor struct {
@@ -217,6 +219,7 @@ type MethodDescriptor struct {
 	InputRef    *TypeReference
 	OutputRef   *TypeReference
 	Description string
+	Service     *ServiceDescriptor
 	URL         string
 }
 
@@ -231,3 +234,23 @@ func (m *MethodDescriptor) GetInputRef() *TypeReference { return m.InputRef }
 
 // GetOutputRef returns a reference to the output type
 func (m *MethodDescriptor) GetOutputRef() *TypeReference { return m.OutputRef }
+
+// GetService returns the service descriptor that defines this method
+func (m *MethodDescriptor) GetService() *ServiceDescriptor { return m.Service }
+
+// A TypeReference represents a reference to a type. It includes the package, name, and whether or not the reference is
+// fully qualified (name starts with a ".").
+type TypeReference struct {
+	Package        string // The package name (if available)
+	TypeName       string // The name (without package)
+	FullyQualified bool   // Whether or not the reference is full qualified
+}
+
+// GetPackage returns the package name (if available)
+func (tr *TypeReference) GetPackage() string { return tr.Package }
+
+// GetTypeName returns the name of the type (without the package)
+func (tr *TypeReference) GetTypeName() string { return tr.TypeName }
+
+// GetFullyQualified returns whether or not the type if fully-qualified
+func (tr *TypeReference) GetFullyQualified() bool { return tr.FullyQualified }

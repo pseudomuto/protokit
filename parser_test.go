@@ -38,12 +38,14 @@ func (assert *ParserTest) TestParseFileEnums() {
 
 	enum := file.GetEnum("ListType")
 	assert.True(enum.IsProto3())
+	assert.Nil(enum.GetParent())
 	assert.NotNil(enum.GetFile())
 	assert.Equal("An enumeration of list types", enum.GetDescription())
 	assert.Equal("com.pseudomuto.protokit.v1", enum.GetPackage())
 	assert.Len(enum.GetValues(), 2)
 
 	assert.Equal("REMINDERS", enum.GetValues()[0].GetName())
+	assert.Equal(enum, enum.GetValues()[0].GetEnum())
 	assert.Equal("The reminders type.", enum.GetNamedValue("REMINDERS").GetDescription())
 
 	assert.Nil(enum.GetNamedValue("whodis"))
@@ -63,6 +65,7 @@ func (assert *ParserTest) TestParseFileServices() {
 
 	m := svc.GetMethods()[0]
 	assert.NotNil(m.GetFile())
+	assert.Equal(svc, m.GetService())
 	assert.Equal("Create a new todo list", m.GetDescription())
 
 	assert.Equal("com.pseudomuto.protokit.v1", m.GetInputRef().GetPackage())
@@ -85,6 +88,7 @@ func (assert *ParserTest) TestParseFileMessages() {
 
 	m := file.GetMessage("AddItemRequest")
 	assert.NotNil(m.GetFile())
+	assert.Nil(m.GetParent())
 	assert.Equal("A request message for adding new items.", m.GetDescription())
 	assert.Equal("com.pseudomuto.protokit.v1", m.GetPackage())
 	assert.Len(m.GetMessageFields(), 3)
@@ -92,6 +96,7 @@ func (assert *ParserTest) TestParseFileMessages() {
 
 	f := m.GetMessageField("completed")
 	assert.NotNil(f.GetFile())
+	assert.Equal(m, f.GetMessage())
 	assert.Equal("Whether or not the item is completed.", f.GetDescription())
 }
 
@@ -103,6 +108,7 @@ func (assert *ParserTest) TestParseFileMessageEnums() {
 
 	e := m.GetEnum("Status")
 	assert.NotNil(e.GetFile())
+	assert.Equal(m, e.GetParent())
 	assert.Equal("Item.Status", e.GetName())
 	assert.Equal(e, m.GetEnum("Item.Status"))
 	assert.Equal("An enumeration of possible statuses", e.GetDescription())
@@ -120,6 +126,7 @@ func (assert *ParserTest) TestParseFileNestedMessages() {
 
 	n := m.GetMessage("Status")
 	assert.NotNil(n.GetFile())
+	assert.Equal(m, n.GetParent())
 	assert.Equal(n, m.GetMessage("CreateListResponse.Status"))
 	assert.Equal("CreateListResponse.Status", n.GetName())
 	assert.Equal("An internal status message", n.GetDescription())

@@ -7,11 +7,10 @@ import (
 type contextKey string
 
 const (
-	fileContextKey           = contextKey("file")
-	commentsContextKey       = contextKey("comments")
-	locationPrefixContextKey = contextKey("locationPrefix")
-	serviceContextKey        = contextKey("service")
-	messageContextKey        = contextKey("message")
+	fileContextKey       = contextKey("file")
+	descriptorContextKey = contextKey("descriptor")
+	enumContextKey       = contextKey("enum")
+	serviceContextKey    = contextKey("service")
 )
 
 // ContextWithFileDescriptor returns a new context with the attached `FileDescriptor`
@@ -25,46 +24,31 @@ func FileDescriptorFromContext(ctx context.Context) (*FileDescriptor, bool) {
 	return val, ok
 }
 
-// ContextWithComments returns a new context with `comments`
-func ContextWithComments(ctx context.Context, comments Comments) context.Context {
-	return context.WithValue(ctx, commentsContextKey, comments)
+func ContextWithDescriptor(ctx context.Context, d *Descriptor) context.Context {
+	return context.WithValue(ctx, descriptorContextKey, d)
 }
 
-// CommentsFromContext returns the `Comments` from the context and whether or not the key was found.
-func CommentsFromContext(ctx context.Context) (Comments, bool) {
-	val, ok := ctx.Value(commentsContextKey).(Comments)
+func DescriptorFromContext(ctx context.Context) (*Descriptor, bool) {
+	val, ok := ctx.Value(descriptorContextKey).(*Descriptor)
 	return val, ok
 }
 
-// ContextWithLocationPrefix returns a new context with `locationPrefix`
-func ContextWithLocationPrefix(ctx context.Context, locationPrefix string) context.Context {
-	return context.WithValue(ctx, locationPrefixContextKey, locationPrefix)
+func ContextWithEnumDescriptor(ctx context.Context, d *EnumDescriptor) context.Context {
+	return context.WithValue(ctx, enumContextKey, d)
 }
 
-// LocationPrefixFromContext returns the `LocationPrefix` from the context and whether or not the key was found.
-func LocationPrefixFromContext(ctx context.Context) (string, bool) {
-	val, ok := ctx.Value(locationPrefixContextKey).(string)
+func EnumDescriptorFromContext(ctx context.Context) (*EnumDescriptor, bool) {
+	val, ok := ctx.Value(enumContextKey).(*EnumDescriptor)
 	return val, ok
 }
 
-// ContextWithService returns a new context with `service`
-func ContextWithService(ctx context.Context, service string) context.Context {
+// ContextWithServiceDescriptor returns a new context with `service`
+func ContextWithServiceDescriptor(ctx context.Context, service *ServiceDescriptor) context.Context {
 	return context.WithValue(ctx, serviceContextKey, service)
 }
 
-// ServiceFromContext returns the `Service` from the context and whether or not the key was found.
-func ServiceFromContext(ctx context.Context) (string, bool) {
-	val, ok := ctx.Value(serviceContextKey).(string)
-	return val, ok
-}
-
-// ContextWithMessage returns a new context with `message`
-func ContextWithMessage(ctx context.Context, message string) context.Context {
-	return context.WithValue(ctx, messageContextKey, message)
-}
-
-// MessageFromContext returns the `Message` from the context and whether or not the key was found.
-func MessageFromContext(ctx context.Context) (string, bool) {
-	val, ok := ctx.Value(messageContextKey).(string)
+// ServiceDescriptorFromContext returns the `Service` from the context and whether or not the key was found.
+func ServiceDescriptorFromContext(ctx context.Context) (*ServiceDescriptor, bool) {
+	val, ok := ctx.Value(serviceContextKey).(*ServiceDescriptor)
 	return val, ok
 }

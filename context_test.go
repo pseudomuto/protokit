@@ -30,54 +30,41 @@ func (assert *ContextTest) TestContextWithFileDescriptor() {
 	assert.True(found)
 }
 
-func (assert *ContextTest) TestContextWithComments() {
+func (assert *ContextTest) TestContextWithEnumDescriptor() {
 	ctx := context.Background()
 
-	val, found := protokit.CommentsFromContext(ctx)
+	val, found := protokit.EnumDescriptorFromContext(ctx)
 	assert.Nil(val)
 	assert.False(found)
 
-	ctx = protokit.ContextWithComments(ctx, make(protokit.Comments))
-	val, found = protokit.CommentsFromContext(ctx)
+	ctx = protokit.ContextWithEnumDescriptor(ctx, new(protokit.EnumDescriptor))
+	val, found = protokit.EnumDescriptorFromContext(ctx)
 	assert.NotNil(val)
 	assert.True(found)
 }
 
-func (assert *ContextTest) TestContextWithLocationPrefix() {
+func (assert *ContextTest) TestContextWithDescriptor() {
 	ctx := context.Background()
 
-	val, found := protokit.LocationPrefixFromContext(ctx)
-	assert.Empty(val)
+	val, found := protokit.DescriptorFromContext(ctx)
+	assert.Nil(val)
 	assert.False(found)
 
-	ctx = protokit.ContextWithLocationPrefix(ctx, "prefix")
-	val, found = protokit.LocationPrefixFromContext(ctx)
-	assert.Equal("prefix", val)
+	ctx = protokit.ContextWithDescriptor(ctx, new(protokit.Descriptor))
+	val, found = protokit.DescriptorFromContext(ctx)
+	assert.NotNil(val)
 	assert.True(found)
 }
 
-func (assert *ContextTest) TestContextWithService() {
+func (assert *ContextTest) TestContextWithServiceDescriptor() {
 	ctx := context.Background()
 
-	val, found := protokit.ServiceFromContext(ctx)
+	val, found := protokit.ServiceDescriptorFromContext(ctx)
 	assert.Empty(val)
 	assert.False(found)
 
-	ctx = protokit.ContextWithService(ctx, "MyService")
-	val, found = protokit.ServiceFromContext(ctx)
-	assert.Equal("MyService", val)
-	assert.True(found)
-}
-
-func (assert *ContextTest) TestContextWithMessage() {
-	ctx := context.Background()
-
-	val, found := protokit.MessageFromContext(ctx)
-	assert.Empty(val)
-	assert.False(found)
-
-	ctx = protokit.ContextWithMessage(ctx, "MyMessage")
-	val, found = protokit.MessageFromContext(ctx)
-	assert.Equal("MyMessage", val)
+	ctx = protokit.ContextWithServiceDescriptor(ctx, new(protokit.ServiceDescriptor))
+	val, found = protokit.ServiceDescriptorFromContext(ctx)
+	assert.NotNil(val)
 	assert.True(found)
 }
