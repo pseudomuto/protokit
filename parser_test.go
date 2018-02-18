@@ -129,6 +129,20 @@ func (assert *ParserTest) TestFileMessages() {
 	assert.NotNil(f.GetFile())
 	assert.Equal(m, f.GetMessage())
 	assert.Equal("Whether or not the item is completed.", f.GetDescription())
+
+	// just making sure google.protobuf.Any fields aren't special
+	m = file.GetMessage("List")
+	f = m.GetMessageField("details")
+	assert.Equal("details", f.GetName())
+	assert.Equal("List.details", f.GetLongName())
+	assert.Equal("com.pseudomuto.protokit.v1.List.details", f.GetFullName())
+
+	// oneof fields should just expand to fields
+	file = protokit.ParseFile(proto2)
+	m = file.GetMessage("Booking")
+	assert.NotNil(m.GetMessageField("reference_num"))
+	assert.NotNil(m.GetMessageField("reference_tag"))
+	assert.Equal("the numeric reference number", m.GetMessageField("reference_num").GetDescription())
 }
 
 func (assert *ParserTest) TestMessageEnums() {

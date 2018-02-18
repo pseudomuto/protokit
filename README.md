@@ -7,11 +7,6 @@
 
 A starter kit for building protoc-plugins. Rather than write your own, you can just use an existing one.
 
-**Currently not supported** (help wanted):
-
-* OneOf
-* Any
-
 [travis-svg]:
   https://travis-ci.org/pseudomuto/protokit.svg?branch=master
 	"Travis CI build status SVG"

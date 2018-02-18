@@ -54,8 +54,8 @@ enum BookingType {
  * Vehicles are some cool shit. But drive carefully!
  */
 message Booking {
-  required int32 vehicle_id     = 1;     /// ID of booked vehicle.
-  required int32 customer_id    = 2;    /// Customer that booked the vehicle.
+  required int32 vehicle_id     = 1; /// ID of booked vehicle.
+  required int32 customer_id    = 2; /// Customer that booked the vehicle.
   required BookingStatus status = 3; /// Status of the booking.
 
   /** Has booking confirmation been sent? */
@@ -63,6 +63,11 @@ message Booking {
 
   /** Has payment been received? */
   optional bool payment_received = 5 [default = false];
+
+  oneof things {
+    int32 reference_num  = 6; // the numeric reference number
+    string reference_tag = 7; // the reference tag (string)
+  }
 
   // Nested extentions are also a thing.
 
