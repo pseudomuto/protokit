@@ -216,41 +216,12 @@ func (s *ServiceDescriptor) GetMethods() []*MethodDescriptor { return s.Methods 
 type MethodDescriptor struct {
 	common
 	*descriptor.MethodDescriptorProto
-	InputRef    *TypeReference
-	OutputRef   *TypeReference
 	Description string
 	Service     *ServiceDescriptor
-	URL         string
 }
 
 // GetDescription returns a description of the method
 func (m *MethodDescriptor) GetDescription() string { return m.Description }
 
-// GetURL returns the URL for the method
-func (m *MethodDescriptor) GetURL() string { return m.URL }
-
-// GetInputRef returns a reference to the input type
-func (m *MethodDescriptor) GetInputRef() *TypeReference { return m.InputRef }
-
-// GetOutputRef returns a reference to the output type
-func (m *MethodDescriptor) GetOutputRef() *TypeReference { return m.OutputRef }
-
 // GetService returns the service descriptor that defines this method
 func (m *MethodDescriptor) GetService() *ServiceDescriptor { return m.Service }
-
-// A TypeReference represents a reference to a type. It includes the package, name, and whether or not the reference is
-// fully qualified (name starts with a ".").
-type TypeReference struct {
-	Package        string // The package name (if available)
-	TypeName       string // The name (without package)
-	FullyQualified bool   // Whether or not the reference is full qualified
-}
-
-// GetPackage returns the package name (if available)
-func (tr *TypeReference) GetPackage() string { return tr.Package }
-
-// GetTypeName returns the name of the type (without the package)
-func (tr *TypeReference) GetTypeName() string { return tr.TypeName }
-
-// GetFullyQualified returns whether or not the type if fully-qualified
-func (tr *TypeReference) GetFullyQualified() bool { return tr.FullyQualified }

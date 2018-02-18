@@ -173,26 +173,8 @@ func parseServiceMethods(ctx context.Context, protos []*descriptor.MethodDescrip
 			MethodDescriptorProto: md,
 			Service:               svc,
 			Description:           file.comments[fmt.Sprintf("%s.%d.%d", svc.path, serviceMethodCommentPath, i)],
-			URL:                   fmt.Sprintf("/%s.%s/%s", file.GetPackage(), svc.GetName(), md.GetName()),
-			InputRef:              typeRef(md.GetInputType()),
-			OutputRef:             typeRef(md.GetOutputType()),
 		}
 	}
 
 	return methods
-}
-
-func typeRef(typeStr string) *TypeReference {
-	parts := strings.Split(typeStr, ".")
-	pkg := ""
-
-	if len(parts) > 2 {
-		pkg = strings.Join(parts[1:len(parts)-1], ".")
-	}
-
-	return &TypeReference{
-		Package:        pkg,
-		TypeName:       parts[len(parts)-1],
-		FullyQualified: parts[0] == "",
-	}
 }

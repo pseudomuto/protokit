@@ -68,16 +68,7 @@ func (assert *ParserTest) TestParseFileServices() {
 	assert.Equal(svc, m.GetService())
 	assert.Equal("Create a new todo list", m.GetDescription())
 
-	assert.Equal("com.pseudomuto.protokit.v1", m.GetInputRef().GetPackage())
-	assert.Equal("CreateListRequest", m.GetInputRef().GetTypeName())
-	assert.True(m.GetInputRef().GetFullyQualified())
-
-	assert.Equal("com.pseudomuto.protokit.v1", m.GetOutputRef().GetPackage())
-	assert.Equal("CreateListResponse", m.GetOutputRef().GetTypeName())
-	assert.True(m.GetInputRef().GetFullyQualified())
-
 	m = svc.GetMethods()[1]
-	assert.Equal("/com.pseudomuto.protokit.v1.Todo/AddItem", m.GetURL())
 	assert.Equal("Add an item to your list\n\nAdds a new item to the specified list.", m.GetDescription())
 }
 
