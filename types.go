@@ -4,6 +4,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 
 	"fmt"
+	"strings"
 )
 
 type common struct {
@@ -14,11 +15,16 @@ type common struct {
 }
 
 func newCommon(f *FileDescriptor, path, longName string) common {
+	fn := longName
+	if !strings.HasPrefix(fn, ".") {
+		fn = fmt.Sprintf("%s.%s", f.GetPackage(), longName)
+	}
+
 	return common{
 		file:     f,
 		path:     path,
 		LongName: longName,
-		FullName: fmt.Sprintf("%s.%s", f.GetPackage(), longName),
+		FullName: fn,
 	}
 }
 
@@ -43,6 +49,7 @@ type FileDescriptor struct {
 	*descriptor.FileDescriptorProto
 	Description string
 	Enums       []*EnumDescriptor
+	Extensions  []*ExtensionDescriptor
 	Messages    []*Descriptor
 	Services    []*ServiceDescriptor
 }
@@ -55,6 +62,9 @@ func (f *FileDescriptor) GetDescription() string { return f.Description }
 
 // GetEnums returns the top-level enumerations defined in this file
 func (f *FileDescriptor) GetEnums() []*EnumDescriptor { return f.Enums }
+
+// GetExtensions returns the top-level (file) extensions defined in this file
+func (f *FileDescriptor) GetExtensions() []*ExtensionDescriptor { return f.Extensions }
 
 // GetMessages returns the top-level messages defined in this file
 func (f *FileDescriptor) GetMessages() []*Descriptor { return f.Messages }
@@ -138,6 +148,20 @@ func (v *EnumValueDescriptor) GetDescription() string { return v.Description }
 // GetEnum returns the parent enumeration that contains this value
 func (v *EnumValueDescriptor) GetEnum() *EnumDescriptor { return v.Enum }
 
+// An ExtensionDescriptor describes a protobuf extension. If it's a top-level extension it's parent will be `nil`
+type ExtensionDescriptor struct {
+	common
+	*descriptor.FieldDescriptorProto
+	Parent      *Descriptor
+	Description string
+}
+
+// GetDescription returns a description of the extension
+func (e *ExtensionDescriptor) GetDescription() string { return e.Description }
+
+// GetParent returns the descriptor that defined this extension (if any)
+func (e *ExtensionDescriptor) GetParent() *Descriptor { return e.Parent }
+
 // A Descriptor describes a message
 type Descriptor struct {
 	common
@@ -145,6 +169,7 @@ type Descriptor struct {
 	Parent      *Descriptor
 	Description string
 	Enums       []*EnumDescriptor
+	Extensions  []*ExtensionDescriptor
 	Fields      []*FieldDescriptor
 	Messages    []*Descriptor
 }
@@ -157,6 +182,9 @@ func (m *Descriptor) GetParent() *Descriptor { return m.Parent }
 
 // GetEnums returns the nested enumerations within the message
 func (m *Descriptor) GetEnums() []*EnumDescriptor { return m.Enums }
+
+// GetExtensions returns the message-level extensions defined by this message
+func (m *Descriptor) GetExtensions() []*ExtensionDescriptor { return m.Extensions }
 
 // GetMessages returns the nested messages within the message
 func (m *Descriptor) GetMessages() []*Descriptor { return m.Messages }

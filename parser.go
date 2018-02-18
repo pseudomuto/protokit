@@ -5,19 +5,22 @@ import (
 
 	"context"
 	"fmt"
+	"strings"
 )
 
 const (
 	// tag numbers in FileDescriptorProto
-	packageCommentPath = 2
-	messageCommentPath = 4
-	enumCommentPath    = 5
-	serviceCommentPath = 6
+	packageCommentPath   = 2
+	messageCommentPath   = 4
+	enumCommentPath      = 5
+	serviceCommentPath   = 6
+	extensionCommentPath = 7
 
 	// tag numbers in DescriptorProto
-	messageFieldCommentPath   = 2 // field
-	messageMessageCommentPath = 3 // nested_type
-	messageEnumCommentPath    = 4 // enum_type
+	messageFieldCommentPath     = 2 // field
+	messageMessageCommentPath   = 3 // nested_type
+	messageEnumCommentPath      = 4 // enum_type
+	messageExtensionCommentPath = 6 // extension
 
 	// tag numbers in EnumDescriptorProto
 	enumValueCommentPath = 2 // value
@@ -38,6 +41,7 @@ func ParseFile(fd *descriptor.FileDescriptorProto) *FileDescriptor {
 
 	ctx := ContextWithFileDescriptor(context.Background(), file)
 	file.Enums = parseEnums(ctx, fd.GetEnumType())
+	file.Extensions = parseExtensions(ctx, fd.GetExtension())
 	file.Messages = parseMessages(ctx, fd.GetMessageType())
 	file.Services = parseServices(ctx, fd.GetService())
 
@@ -91,6 +95,35 @@ func parseEnumValues(ctx context.Context, protos []*descriptor.EnumValueDescript
 	return values
 }
 
+func parseExtensions(ctx context.Context, protos []*descriptor.FieldDescriptorProto) []*ExtensionDescriptor {
+	exts := make([]*ExtensionDescriptor, len(protos))
+	file, _ := FileDescriptorFromContext(ctx)
+	parent, hasParent := DescriptorFromContext(ctx)
+
+	for i, ext := range protos {
+		commentPath := fmt.Sprintf("%d.%d", extensionCommentPath, i)
+		longName := fmt.Sprintf("%s.%s", ext.GetExtendee(), ext.GetName())
+
+		if strings.Contains(longName, file.GetPackage()) {
+			parts := strings.Split(ext.GetExtendee(), ".")
+			longName = fmt.Sprintf("%s.%s", parts[len(parts)-1], ext.GetName())
+		}
+
+		if hasParent {
+			commentPath = fmt.Sprintf("%s.%d.%d", parent.path, messageExtensionCommentPath, i)
+		}
+
+		exts[i] = &ExtensionDescriptor{
+			common:               newCommon(file, commentPath, longName),
+			FieldDescriptorProto: ext,
+			Description:          file.comments[commentPath],
+			Parent:               parent,
+		}
+	}
+
+	return exts
+}
+
 func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []*Descriptor {
 	msgs := make([]*Descriptor, len(protos))
 	file, _ := FileDescriptorFromContext(ctx)
@@ -113,9 +146,10 @@ func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []
 		}
 
 		msgCtx := ContextWithDescriptor(ctx, msgs[i])
+		msgs[i].Enums = parseEnums(msgCtx, md.GetEnumType())
+		msgs[i].Extensions = parseExtensions(msgCtx, md.GetExtension())
 		msgs[i].Fields = parseMessageFields(msgCtx, md.GetField())
 		msgs[i].Messages = parseMessages(msgCtx, md.GetNestedType())
-		msgs[i].Enums = parseEnums(msgCtx, md.GetEnumType())
 	}
 
 	return msgs

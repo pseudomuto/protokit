@@ -9,7 +9,10 @@ import (
 	"github.com/pseudomuto/protokit"
 )
 
-var proto *descriptor.FileDescriptorProto
+var (
+	proto2 *descriptor.FileDescriptorProto
+	proto3 *descriptor.FileDescriptorProto
+)
 
 type ParserTest struct {
 	suite.Suite
@@ -21,18 +24,27 @@ func TestParser(t *testing.T) {
 
 func (assert *ParserTest) SetupSuite() {
 	var err error
-	proto, err = protokit.LoadDescriptor("todo.proto", "fixtures", "fileset.pb")
+
+	proto2, err = protokit.LoadDescriptor("booking.proto", "fixtures", "fileset.pb")
+	assert.NoError(err)
+
+	proto3, err = protokit.LoadDescriptor("todo.proto", "fixtures", "fileset.pb")
 	assert.NoError(err)
 }
 
 func (assert *ParserTest) TestParseFile() {
-	file := protokit.ParseFile(proto)
+	file := protokit.ParseFile(proto3)
 	assert.True(file.IsProto3())
 	assert.Contains(file.GetDescription(), "The official documentation for the Todo API.\n\n")
+	assert.Len(file.GetExtensions(), 0) // no extensions in proto3
+
+	file = protokit.ParseFile(proto2)
+	assert.False(file.IsProto3())
+	assert.Len(file.GetExtensions(), 1)
 }
 
-func (assert *ParserTest) TestParseFileEnums() {
-	file := protokit.ParseFile(proto)
+func (assert *ParserTest) TestFileEnums() {
+	file := protokit.ParseFile(proto3)
 	assert.Len(file.GetEnums(), 1)
 	assert.Nil(file.GetEnum("swingandamiss"))
 
@@ -53,8 +65,18 @@ func (assert *ParserTest) TestParseFileEnums() {
 	assert.Nil(enum.GetNamedValue("whodis"))
 }
 
-func (assert *ParserTest) TestParseFileServices() {
-	file := protokit.ParseFile(proto)
+func (assert *ParserTest) TestFileExtensions() {
+	file := protokit.ParseFile(proto2)
+	ext := file.GetExtensions()[0]
+	assert.Nil(ext.GetParent())
+	assert.Equal("country", ext.GetName())
+	assert.Equal("BookingStatus.country", ext.GetLongName())
+	assert.Equal("com.pseudomuto.protokit.v1.BookingStatus.country", ext.GetFullName())
+	assert.Equal("The country the booking occurred in.", ext.GetDescription())
+}
+
+func (assert *ParserTest) TestServices() {
+	file := protokit.ParseFile(proto3)
 	assert.Len(file.GetServices(), 1)
 	assert.Nil(file.GetService("swingandamiss"))
 
@@ -81,8 +103,8 @@ func (assert *ParserTest) TestParseFileServices() {
 	assert.Nil(svc.GetNamedMethod("wat"))
 }
 
-func (assert *ParserTest) TestParseFileMessages() {
-	file := protokit.ParseFile(proto)
+func (assert *ParserTest) TestFileMessages() {
+	file := protokit.ParseFile(proto3)
 	assert.Len(file.GetMessages(), 6)
 	assert.Nil(file.GetMessage("swingandamiss"))
 
@@ -97,6 +119,9 @@ func (assert *ParserTest) TestParseFileMessages() {
 	assert.Len(m.GetMessageFields(), 3)
 	assert.Nil(m.GetMessageField("swingandamiss"))
 
+	// no extensions in proto3
+	assert.Len(m.GetExtensions(), 0)
+
 	f := m.GetMessageField("completed")
 	assert.Equal("completed", f.GetName())
 	assert.Equal("AddItemRequest.completed", f.GetLongName())
@@ -106,8 +131,8 @@ func (assert *ParserTest) TestParseFileMessages() {
 	assert.Equal("Whether or not the item is completed.", f.GetDescription())
 }
 
-func (assert *ParserTest) TestParseFileMessageEnums() {
-	m := protokit.ParseFile(proto).GetMessage("Item")
+func (assert *ParserTest) TestMessageEnums() {
+	m := protokit.ParseFile(proto3).GetMessage("Item")
 	assert.NotNil(m.GetFile())
 	assert.Len(m.GetEnums(), 1)
 	assert.Nil(m.GetEnum("whodis"))
@@ -130,13 +155,27 @@ func (assert *ParserTest) TestParseFileMessageEnums() {
 	assert.NotNil(val.GetFile())
 }
 
-func (assert *ParserTest) TestParseFileNestedMessages() {
-	m := protokit.ParseFile(proto).GetMessage("CreateListResponse")
+func (assert *ParserTest) TestMessageExtensions() {
+	m := protokit.ParseFile(proto2).GetMessage("Booking")
+	ext := m.GetExtensions()[0]
+	assert.Equal(m, ext.GetParent())
+	assert.Equal(int32(101), ext.GetNumber())
+	assert.Equal("optional_field_1", ext.GetName())
+	assert.Equal("BookingStatus.optional_field_1", ext.GetLongName())
+	assert.Equal("com.pseudomuto.protokit.v1.BookingStatus.optional_field_1", ext.GetFullName())
+	assert.Equal("An optional field to be used however you please.", ext.GetDescription())
+}
+
+func (assert *ParserTest) TestNestedMessages() {
+	m := protokit.ParseFile(proto3).GetMessage("CreateListResponse")
 	assert.Len(m.GetMessages(), 1)
 	assert.Nil(m.GetMessage("whodis"))
 
 	n := m.GetMessage("Status")
 	assert.Equal(n, m.GetMessage("CreateListResponse.Status"))
+
+	// no extensions in proto3
+	assert.Len(n.GetExtensions(), 0)
 
 	assert.Equal("Status", n.GetName())
 	assert.Equal("CreateListResponse.Status", n.GetLongName())
