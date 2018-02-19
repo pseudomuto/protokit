@@ -24,13 +24,13 @@ func TestParser(t *testing.T) {
 }
 
 func (assert *ParserTest) SetupSuite() {
-	var err error
-
-	proto2, err = utils.LoadDescriptor("booking.proto", "fixtures", "fileset.pb")
+	set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
 	assert.NoError(err)
 
-	proto3, err = utils.LoadDescriptor("todo.proto", "fixtures", "fileset.pb")
-	assert.NoError(err)
+	proto2 = utils.FindDescriptor(set, "booking.proto")
+	proto3 = utils.FindDescriptor(set, "todo.proto")
+	assert.NotNil(proto2)
+	assert.NotNil(proto3)
 }
 
 func (assert *ParserTest) TestParseFile() {

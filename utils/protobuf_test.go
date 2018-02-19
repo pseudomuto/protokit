@@ -35,6 +35,16 @@ func (assert *UtilsTest) TestCreateGenRequest() {
 	}
 }
 
+func (assert *UtilsTest) TestFilesToGenerate() {
+	fds, err := utils.LoadDescriptorSet("..", "fixtures", "fileset.pb")
+	assert.NoError(err)
+
+	req := utils.CreateGenRequest(fds, "booking.proto")
+	protos := utils.FilesToGenerate(req)
+	assert.Len(protos, 1)
+	assert.Equal("booking.proto", protos[0].GetName())
+}
+
 func (assert *UtilsTest) TestLoadDescriptorSet() {
 	set, err := utils.LoadDescriptorSet("..", "fixtures", "fileset.pb")
 	assert.NoError(err)
