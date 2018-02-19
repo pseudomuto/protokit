@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/pseudomuto/protokit"
+	"github.com/pseudomuto/protokit/utils"
 )
 
 var (
@@ -25,10 +26,10 @@ func TestParser(t *testing.T) {
 func (assert *ParserTest) SetupSuite() {
 	var err error
 
-	proto2, err = protokit.LoadDescriptor("booking.proto", "fixtures", "fileset.pb")
+	proto2, err = utils.LoadDescriptor("booking.proto", "fixtures", "fileset.pb")
 	assert.NoError(err)
 
-	proto3, err = protokit.LoadDescriptor("todo.proto", "fixtures", "fileset.pb")
+	proto3, err = utils.LoadDescriptor("todo.proto", "fixtures", "fileset.pb")
 	assert.NoError(err)
 }
 

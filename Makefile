@@ -11,7 +11,7 @@ fixtures/fileset.pb: fixtures/*.proto
 	@cd fixtures && go generate
 
 test: fixtures/fileset.pb
-	@go test -race -cover ./
+	@go test -race -cover ./ ./utils
 
 test-ci: fixtures/fileset.pb
-	@retool do goverage -race -coverprofile=coverage.txt -covermode=atomic ./
+	@retool do goverage -race -coverprofile=coverage.txt -covermode=atomic ./ ./utils

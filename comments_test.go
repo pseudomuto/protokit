@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/pseudomuto/protokit"
+	"github.com/pseudomuto/protokit/utils"
 )
 
 type CommentsTest struct {
@@ -18,7 +19,7 @@ func TestComments(t *testing.T) {
 }
 
 func (assert *CommentsTest) SetupSuite() {
-	pf, err := protokit.LoadDescriptor("todo.proto", "fixtures", "fileset.pb")
+	pf, err := utils.LoadDescriptor("todo.proto", "fixtures", "fileset.pb")
 	assert.NoError(err)
 
 	assert.comments = protokit.ParseComments(pf)
