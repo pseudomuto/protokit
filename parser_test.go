@@ -33,6 +33,15 @@ func (assert *ParserTest) SetupSuite() {
 	assert.NotNil(proto3)
 }
 
+func (assert *ParserTest) TestParseCodeGenRequest() {
+	set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
+	assert.NoError(err)
+
+	req := utils.CreateGenRequest(set, "booking.proto", "todo.proto")
+	files := protokit.ParseCodeGenRequest(req)
+	assert.Len(files, 2)
+}
+
 func (assert *ParserTest) TestParseFile() {
 	file := protokit.ParseFile(proto3)
 	assert.True(file.IsProto3())

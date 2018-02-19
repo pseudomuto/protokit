@@ -2,10 +2,13 @@ package protokit
 
 import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/golang/protobuf/protoc-gen-go/plugin"
 
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/pseudomuto/protokit/utils"
 )
 
 const (
@@ -28,6 +31,18 @@ const (
 	// tag numbers in ServiceDescriptorProto
 	serviceMethodCommentPath = 2
 )
+
+// ParseCodeGenRequest parses the given request into `FileDescriptor` objects. Only the _FilesToGenerate_ will be parsed
+// here.
+func ParseCodeGenRequest(req *plugin_go.CodeGeneratorRequest) []*FileDescriptor {
+	files := make([]*FileDescriptor, len(req.GetFileToGenerate()))
+
+	for i, pf := range utils.FilesToGenerate(req) {
+		files[i] = ParseFile(pf)
+	}
+
+	return files
+}
 
 // ParseFile parses a `FileDescriptorProto` into a `FileDescriptor` struct.
 func ParseFile(fd *descriptor.FileDescriptorProto) *FileDescriptor {

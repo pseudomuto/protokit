@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+// This is just a sample proto for demonstrating how to use this library.
+//
+// There's nothing "fancy" here.
+package com.jsonator.v1;
+
+service SampleService {
+  rpc RandomSample(google.protobuf.Empty) returns (Sample);
+}
+
+message Sample {
+  int64 id = 1;
+}
