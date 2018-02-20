@@ -7,6 +7,44 @@
 
 A starter kit for building protoc-plugins. Rather than write your own, you can just use an existing one.
 
+See the [examples](examples/) directory for uh...examples.
+
+## Getting Started
+
+```golang
+package main
+
+import (
+	"github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/pseudomuto/protokit"
+
+	"log"
+)
+
+func main() {
+	// all the reading, writing, and parsing is taken care of
+	if err := protokit.RunPlugin(new(plugin)); err != nil {
+		log.Fatal(err)
+	}
+}
+
+type plugin struct{}
+
+func (p *plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
+	// this will parse the requested proto files into `protokit.FileDescriptor` objects
+	descriptors := protokit.ParseCodeGenRequest(req)
+
+	resp := new(plugin_go.CodeGeneratorResponse)
+	// resp.File = append(resp.File, &plugin_go.CodeGeneratorResponse_File{ ... }
+
+	return resp, nil
+}
+```
+
+Then invoke your plugin via `protoc`. For example (assuming your app is called `thingy`):
+
+`protoc --plugin=protoc-gen-thingy=./thingy -I. --thingy_out=. rpc/*.proto`
+
 [travis-svg]:
   https://travis-ci.org/pseudomuto/protokit.svg?branch=master
 	"Travis CI build status SVG"
