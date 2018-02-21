@@ -47,18 +47,19 @@ func (c *common) IsProto3() bool { return c.file.GetSyntax() == "proto3" }
 type FileDescriptor struct {
 	comments Comments
 	*descriptor.FileDescriptorProto
-	Description string
-	Enums       []*EnumDescriptor
-	Extensions  []*ExtensionDescriptor
-	Messages    []*Descriptor
-	Services    []*ServiceDescriptor
+
+	Comments   *Comment
+	Enums      []*EnumDescriptor
+	Extensions []*ExtensionDescriptor
+	Messages   []*Descriptor
+	Services   []*ServiceDescriptor
 }
 
 // IsProto3 returns whether or not this file is a proto3 file
 func (f *FileDescriptor) IsProto3() bool { return f.GetSyntax() == "proto3" }
 
-// GetDescription returns the file's package comments
-func (f *FileDescriptor) GetDescription() string { return f.Description }
+// GetComments returns the file's package comments
+func (f *FileDescriptor) GetComments() *Comment { return f.Comments }
 
 // GetEnums returns the top-level enumerations defined in this file
 func (f *FileDescriptor) GetEnums() []*EnumDescriptor { return f.Enums }
@@ -109,13 +110,13 @@ func (f *FileDescriptor) GetService(name string) *ServiceDescriptor {
 type EnumDescriptor struct {
 	common
 	*descriptor.EnumDescriptorProto
-	Parent      *Descriptor
-	Values      []*EnumValueDescriptor
-	Description string
+	Parent   *Descriptor
+	Values   []*EnumValueDescriptor
+	Comments *Comment
 }
 
-// GetDescription returns a description of this enum
-func (e *EnumDescriptor) GetDescription() string { return e.Description }
+// GetComments returns a description of this enum
+func (e *EnumDescriptor) GetComments() *Comment { return e.Comments }
 
 // GetParent returns the parent message (if any) that contains this enum
 func (e *EnumDescriptor) GetParent() *Descriptor { return e.Parent }
@@ -138,12 +139,12 @@ func (e *EnumDescriptor) GetNamedValue(name string) *EnumValueDescriptor {
 type EnumValueDescriptor struct {
 	common
 	*descriptor.EnumValueDescriptorProto
-	Enum        *EnumDescriptor
-	Description string
+	Enum     *EnumDescriptor
+	Comments *Comment
 }
 
-// GetDescription returns a description of the value
-func (v *EnumValueDescriptor) GetDescription() string { return v.Description }
+// GetComments returns a description of the value
+func (v *EnumValueDescriptor) GetComments() *Comment { return v.Comments }
 
 // GetEnum returns the parent enumeration that contains this value
 func (v *EnumValueDescriptor) GetEnum() *EnumDescriptor { return v.Enum }
@@ -152,12 +153,12 @@ func (v *EnumValueDescriptor) GetEnum() *EnumDescriptor { return v.Enum }
 type ExtensionDescriptor struct {
 	common
 	*descriptor.FieldDescriptorProto
-	Parent      *Descriptor
-	Description string
+	Parent   *Descriptor
+	Comments *Comment
 }
 
-// GetDescription returns a description of the extension
-func (e *ExtensionDescriptor) GetDescription() string { return e.Description }
+// GetComments returns a description of the extension
+func (e *ExtensionDescriptor) GetComments() *Comment { return e.Comments }
 
 // GetParent returns the descriptor that defined this extension (if any)
 func (e *ExtensionDescriptor) GetParent() *Descriptor { return e.Parent }
@@ -166,16 +167,16 @@ func (e *ExtensionDescriptor) GetParent() *Descriptor { return e.Parent }
 type Descriptor struct {
 	common
 	*descriptor.DescriptorProto
-	Parent      *Descriptor
-	Description string
-	Enums       []*EnumDescriptor
-	Extensions  []*ExtensionDescriptor
-	Fields      []*FieldDescriptor
-	Messages    []*Descriptor
+	Parent     *Descriptor
+	Comments   *Comment
+	Enums      []*EnumDescriptor
+	Extensions []*ExtensionDescriptor
+	Fields     []*FieldDescriptor
+	Messages   []*Descriptor
 }
 
-// GetDescription returns a description of the message
-func (m *Descriptor) GetDescription() string { return m.Description }
+// GetComments returns a description of the message
+func (m *Descriptor) GetComments() *Comment { return m.Comments }
 
 // GetParent returns the parent descriptor (if any) that defines this descriptor
 func (m *Descriptor) GetParent() *Descriptor { return m.Parent }
@@ -233,12 +234,12 @@ func (m *Descriptor) GetMessageField(name string) *FieldDescriptor {
 type FieldDescriptor struct {
 	common
 	*descriptor.FieldDescriptorProto
-	Description string
-	Message     *Descriptor
+	Comments *Comment
+	Message  *Descriptor
 }
 
-// GetDescription returns a description of the field
-func (mf *FieldDescriptor) GetDescription() string { return mf.Description }
+// GetComments returns a description of the field
+func (mf *FieldDescriptor) GetComments() *Comment { return mf.Comments }
 
 // GetMessage returns the descriptor that defines this field
 func (mf *FieldDescriptor) GetMessage() *Descriptor { return mf.Message }
@@ -247,12 +248,12 @@ func (mf *FieldDescriptor) GetMessage() *Descriptor { return mf.Message }
 type ServiceDescriptor struct {
 	common
 	*descriptor.ServiceDescriptorProto
-	Description string
-	Methods     []*MethodDescriptor
+	Comments *Comment
+	Methods  []*MethodDescriptor
 }
 
-// GetDescription returns a description of the service
-func (s *ServiceDescriptor) GetDescription() string { return s.Description }
+// GetComments returns a description of the service
+func (s *ServiceDescriptor) GetComments() *Comment { return s.Comments }
 
 // GetMethods returns the methods for the service
 func (s *ServiceDescriptor) GetMethods() []*MethodDescriptor { return s.Methods }
@@ -272,12 +273,12 @@ func (s *ServiceDescriptor) GetNamedMethod(name string) *MethodDescriptor {
 type MethodDescriptor struct {
 	common
 	*descriptor.MethodDescriptorProto
-	Description string
-	Service     *ServiceDescriptor
+	Comments *Comment
+	Service  *ServiceDescriptor
 }
 
-// GetDescription returns a description of the method
-func (m *MethodDescriptor) GetDescription() string { return m.Description }
+// GetComments returns a description of the method
+func (m *MethodDescriptor) GetComments() *Comment { return m.Comments }
 
 // GetService returns the service descriptor that defines this method
 func (m *MethodDescriptor) GetService() *ServiceDescriptor { return m.Service }

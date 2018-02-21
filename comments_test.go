@@ -27,14 +27,17 @@ func (assert *CommentsTest) SetupSuite() {
 
 func (assert *CommentsTest) TestComments() {
 	tests := []struct {
-		key   string
-		value string
+		key      string
+		leading  string
+		trailing string
 	}{
-		{"6.0.2.1", "Add an item to your list\n\nAdds a new item to the specified list."}, // leading commend
-		{"4.0.2.0", "The id of the list."},                                                // tailing comment
+		{"6.0.2.1", "Add an item to your list\n\nAdds a new item to the specified list.", ""}, // leading commend
+		{"4.0.2.0", "", "The id of the list."},                                                // tailing comment
 	}
 
 	for _, test := range tests {
-		assert.Equal(test.value, assert.comments[test.key])
+		assert.Equal(test.leading, assert.comments[test.key].GetLeading())
+		assert.Equal(test.trailing, assert.comments[test.key].GetTrailing())
+		assert.Len(assert.comments[test.key].GetDetached(), 0)
 	}
 }

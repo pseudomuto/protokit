@@ -45,7 +45,7 @@ func (assert *ParserTest) TestParseCodeGenRequest() {
 func (assert *ParserTest) TestParseFile() {
 	file := protokit.ParseFile(proto3)
 	assert.True(file.IsProto3())
-	assert.Contains(file.GetDescription(), "The official documentation for the Todo API.\n\n")
+	assert.Contains(file.GetComments().String(), "The official documentation for the Todo API.\n\n")
 	assert.Len(file.GetExtensions(), 0) // no extensions in proto3
 
 	file = protokit.ParseFile(proto2)
@@ -64,13 +64,13 @@ func (assert *ParserTest) TestFileEnums() {
 	assert.True(enum.IsProto3())
 	assert.Nil(enum.GetParent())
 	assert.NotNil(enum.GetFile())
-	assert.Equal("An enumeration of list types", enum.GetDescription())
+	assert.Equal("An enumeration of list types", enum.GetComments().String())
 	assert.Equal("com.pseudomuto.protokit.v1", enum.GetPackage())
 	assert.Len(enum.GetValues(), 2)
 
 	assert.Equal("REMINDERS", enum.GetValues()[0].GetName())
 	assert.Equal(enum, enum.GetValues()[0].GetEnum())
-	assert.Equal("The reminders type.", enum.GetNamedValue("REMINDERS").GetDescription())
+	assert.Equal("The reminders type.", enum.GetNamedValue("REMINDERS").GetComments().String())
 
 	assert.Nil(enum.GetNamedValue("whodis"))
 }
@@ -82,7 +82,7 @@ func (assert *ParserTest) TestFileExtensions() {
 	assert.Equal("country", ext.GetName())
 	assert.Equal("BookingStatus.country", ext.GetLongName())
 	assert.Equal("com.pseudomuto.protokit.v1.BookingStatus.country", ext.GetFullName())
-	assert.Equal("The country the booking occurred in.", ext.GetDescription())
+	assert.Equal("The country the booking occurred in.", ext.GetComments().String())
 }
 
 func (assert *ParserTest) TestServices() {
@@ -95,7 +95,7 @@ func (assert *ParserTest) TestServices() {
 	assert.Equal("com.pseudomuto.protokit.v1.Todo", svc.GetFullName())
 	assert.NotNil(svc.GetFile())
 	assert.True(svc.IsProto3())
-	assert.Contains(svc.GetDescription(), "A service for managing \"todo\" items.\n\n")
+	assert.Contains(svc.GetComments().String(), "A service for managing \"todo\" items.\n\n")
 	assert.Equal("com.pseudomuto.protokit.v1", svc.GetPackage())
 	assert.Len(svc.GetMethods(), 2)
 
@@ -105,10 +105,10 @@ func (assert *ParserTest) TestServices() {
 	assert.Equal("com.pseudomuto.protokit.v1.Todo.CreateList", m.GetFullName())
 	assert.NotNil(m.GetFile())
 	assert.Equal(svc, m.GetService())
-	assert.Equal("Create a new todo list", m.GetDescription())
+	assert.Equal("Create a new todo list", m.GetComments().String())
 
 	m = svc.GetNamedMethod("Todo.AddItem")
-	assert.Equal("Add an item to your list\n\nAdds a new item to the specified list.", m.GetDescription())
+	assert.Equal("Add an item to your list\n\nAdds a new item to the specified list.", m.GetComments().String())
 
 	assert.Nil(svc.GetNamedMethod("wat"))
 }
@@ -124,7 +124,7 @@ func (assert *ParserTest) TestFileMessages() {
 	assert.Equal("com.pseudomuto.protokit.v1.AddItemRequest", m.GetFullName())
 	assert.NotNil(m.GetFile())
 	assert.Nil(m.GetParent())
-	assert.Equal("A request message for adding new items.", m.GetDescription())
+	assert.Equal("A request message for adding new items.", m.GetComments().String())
 	assert.Equal("com.pseudomuto.protokit.v1", m.GetPackage())
 	assert.Len(m.GetMessageFields(), 3)
 	assert.Nil(m.GetMessageField("swingandamiss"))
@@ -138,7 +138,7 @@ func (assert *ParserTest) TestFileMessages() {
 	assert.Equal("com.pseudomuto.protokit.v1.AddItemRequest.completed", f.GetFullName())
 	assert.NotNil(f.GetFile())
 	assert.Equal(m, f.GetMessage())
-	assert.Equal("Whether or not the item is completed.", f.GetDescription())
+	assert.Equal("Whether or not the item is completed.", f.GetComments().String())
 
 	// just making sure google.protobuf.Any fields aren't special
 	m = file.GetMessage("List")
@@ -152,7 +152,7 @@ func (assert *ParserTest) TestFileMessages() {
 	m = file.GetMessage("Booking")
 	assert.NotNil(m.GetMessageField("reference_num"))
 	assert.NotNil(m.GetMessageField("reference_tag"))
-	assert.Equal("the numeric reference number", m.GetMessageField("reference_num").GetDescription())
+	assert.Equal("the numeric reference number", m.GetMessageField("reference_num").GetComments().String())
 }
 
 func (assert *ParserTest) TestMessageEnums() {
@@ -168,14 +168,14 @@ func (assert *ParserTest) TestMessageEnums() {
 	assert.NotNil(e.GetFile())
 	assert.Equal(m, e.GetParent())
 	assert.Equal(e, m.GetEnum("Item.Status"))
-	assert.Equal("An enumeration of possible statuses", e.GetDescription())
+	assert.Equal("An enumeration of possible statuses", e.GetComments().String())
 	assert.Len(e.GetValues(), 2)
 
 	val := e.GetNamedValue("COMPLETED")
 	assert.Equal("COMPLETED", val.GetName())
 	assert.Equal("Item.Status.COMPLETED", val.GetLongName())
 	assert.Equal("com.pseudomuto.protokit.v1.Item.Status.COMPLETED", val.GetFullName())
-	assert.Equal("The completed status.", val.GetDescription())
+	assert.Equal("The completed status.", val.GetComments().String())
 	assert.NotNil(val.GetFile())
 }
 
@@ -187,7 +187,7 @@ func (assert *ParserTest) TestMessageExtensions() {
 	assert.Equal("optional_field_1", ext.GetName())
 	assert.Equal("BookingStatus.optional_field_1", ext.GetLongName())
 	assert.Equal("com.pseudomuto.protokit.v1.BookingStatus.optional_field_1", ext.GetFullName())
-	assert.Equal("An optional field to be used however you please.", ext.GetDescription())
+	assert.Equal("An optional field to be used however you please.", ext.GetComments().String())
 }
 
 func (assert *ParserTest) TestNestedMessages() {
@@ -204,7 +204,7 @@ func (assert *ParserTest) TestNestedMessages() {
 	assert.Equal("Status", n.GetName())
 	assert.Equal("CreateListResponse.Status", n.GetLongName())
 	assert.Equal("com.pseudomuto.protokit.v1.CreateListResponse.Status", n.GetFullName())
-	assert.Equal("An internal status message", n.GetDescription())
+	assert.Equal("An internal status message", n.GetComments().String())
 	assert.NotNil(n.GetFile())
 	assert.Equal(m, n.GetParent())
 
@@ -212,5 +212,5 @@ func (assert *ParserTest) TestNestedMessages() {
 	assert.Equal("CreateListResponse.Status.code", f.GetLongName())
 	assert.Equal("com.pseudomuto.protokit.v1.CreateListResponse.Status.code", f.GetFullName())
 	assert.NotNil(f.GetFile())
-	assert.Equal("The status code.", f.GetDescription())
+	assert.Equal("The status code.", f.GetComments().String())
 }

@@ -51,7 +51,7 @@ func ParseFile(fd *descriptor.FileDescriptorProto) *FileDescriptor {
 	file := &FileDescriptor{
 		comments:            comments,
 		FileDescriptorProto: fd,
-		Description:         comments[fmt.Sprintf("%d", packageCommentPath)],
+		Comments:            comments[fmt.Sprintf("%d", packageCommentPath)],
 	}
 
 	ctx := ContextWithFileDescriptor(context.Background(), file)
@@ -80,7 +80,7 @@ func parseEnums(ctx context.Context, protos []*descriptor.EnumDescriptorProto) [
 		enums[i] = &EnumDescriptor{
 			common:              newCommon(file, commentPath, longName),
 			EnumDescriptorProto: ed,
-			Description:         file.comments[commentPath],
+			Comments:            file.comments[commentPath],
 			Parent:              parent,
 		}
 
@@ -102,8 +102,8 @@ func parseEnumValues(ctx context.Context, protos []*descriptor.EnumValueDescript
 		values[i] = &EnumValueDescriptor{
 			common: newCommon(file, "", longName),
 			EnumValueDescriptorProto: vd,
-			Enum:        enum,
-			Description: file.comments[fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)],
+			Enum:     enum,
+			Comments: file.comments[fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)],
 		}
 	}
 
@@ -131,7 +131,7 @@ func parseExtensions(ctx context.Context, protos []*descriptor.FieldDescriptorPr
 		exts[i] = &ExtensionDescriptor{
 			common:               newCommon(file, commentPath, longName),
 			FieldDescriptorProto: ext,
-			Description:          file.comments[commentPath],
+			Comments:             file.comments[commentPath],
 			Parent:               parent,
 		}
 	}
@@ -156,7 +156,7 @@ func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []
 		msgs[i] = &Descriptor{
 			common:          newCommon(file, commentPath, longName),
 			DescriptorProto: md,
-			Description:     file.comments[commentPath],
+			Comments:        file.comments[commentPath],
 			Parent:          parent,
 		}
 
@@ -181,7 +181,7 @@ func parseMessageFields(ctx context.Context, protos []*descriptor.FieldDescripto
 		fields[i] = &FieldDescriptor{
 			common:               newCommon(file, "", longName),
 			FieldDescriptorProto: fd,
-			Description:          file.comments[fmt.Sprintf("%s.%d.%d", message.path, messageFieldCommentPath, i)],
+			Comments:             file.comments[fmt.Sprintf("%s.%d.%d", message.path, messageFieldCommentPath, i)],
 			Message:              message,
 		}
 	}
@@ -200,7 +200,7 @@ func parseServices(ctx context.Context, protos []*descriptor.ServiceDescriptorPr
 		svcs[i] = &ServiceDescriptor{
 			common:                 newCommon(file, commentPath, longName),
 			ServiceDescriptorProto: sd,
-			Description:            file.comments[commentPath],
+			Comments:               file.comments[commentPath],
 		}
 
 		svcCtx := ContextWithServiceDescriptor(ctx, svcs[i])
@@ -223,7 +223,7 @@ func parseServiceMethods(ctx context.Context, protos []*descriptor.MethodDescrip
 			common:                newCommon(file, "", longName),
 			MethodDescriptorProto: md,
 			Service:               svc,
-			Description:           file.comments[fmt.Sprintf("%s.%d.%d", svc.path, serviceMethodCommentPath, i)],
+			Comments:              file.comments[fmt.Sprintf("%s.%d.%d", svc.path, serviceMethodCommentPath, i)],
 		}
 	}
 
