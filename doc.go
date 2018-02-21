@@ -6,7 +6,7 @@
 //
 // Getting Started
 //
-// For a quick view of how to get started, see https://godoc.org/github.com/pseudomuto/protokit/#example_RunPlugin
+// For a quick view of how to get started, see https://godoc.org/github.com/pseudomuto/protokit#example-RunPlugin
 //
 // If you want see/try a working example, check out the examples in
 // https://github.com/pseudomuto/protokit/tree/master/examples.
