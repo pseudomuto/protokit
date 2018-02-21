@@ -15,29 +15,40 @@ See the [examples](examples/) directory for uh...examples.
 package main
 
 import (
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/pseudomuto/protokit"
+    "github.com/golang/protobuf/proto"
+    "github.com/golang/protobuf/protoc-gen-go/plugin"
+    "github.com/pseudomuto/protokit"
 
-	"log"
+    "log"
 )
 
 func main() {
-	// all the reading, writing, and parsing is taken care of
-	if err := protokit.RunPlugin(new(plugin)); err != nil {
-		log.Fatal(err)
-	}
+    // all the heavy lifting done for you!
+    if err := protokit.RunPlugin(new(plugin)); err != nil {
+        log.Fatal(err)
+    }
 }
 
+// plugin is an implementation of protokit.Plugin
 type plugin struct{}
 
-func (p *plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
-	// this will parse the requested proto files into `protokit.FileDescriptor` objects
-	descriptors := protokit.ParseCodeGenRequest(req)
+func (p *plugin) Generate(in *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
+    descriptors := protokit.ParseCodeGenRequest(req)
 
-	resp := new(plugin_go.CodeGeneratorResponse)
-	// resp.File = append(resp.File, &plugin_go.CodeGeneratorResponse_File{ ... }
+    resp := new(plugin_go.CodeGeneratorResponse)
 
-	return resp, nil
+    for _, d := range descriptors {
+        // TODO: YOUR WORK HERE
+        fileName := // generate a file name based on d.GetName()
+        content := // generate content for the output file
+
+        resp.File = append(resp.File, &plugin_go.CodeGeneratorResponse_File{
+            Name:    proto.String(fileName),
+            Content: proto.String(content),
+        })
+    }
+
+    return resp, nil
 }
 ```
 

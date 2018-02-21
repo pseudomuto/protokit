@@ -3,6 +3,7 @@ package protokit_test
 import (
 	"github.com/stretchr/testify/suite"
 
+	"fmt"
 	"testing"
 
 	"github.com/pseudomuto/protokit"
@@ -40,4 +41,13 @@ func (assert *CommentsTest) TestComments() {
 		assert.Equal(test.trailing, assert.comments[test.key].GetTrailing())
 		assert.Len(assert.comments[test.key].GetDetached(), 0)
 	}
+}
+
+// Join the leading and trailing comments together
+func ExampleComment_String() {
+	c := &protokit.Comment{Leading: "Some leading comment", Trailing: "Some trailing comment"}
+	fmt.Println(c.String())
+	// Output: Some leading comment
+	//
+	// Some trailing comment
 }

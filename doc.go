@@ -1,45 +1,13 @@
-// Package protokit provides core types used for parsing proto3 documents.
+// Package protokit is a library that makes it easy to create your own protoc plugins. It has excellent test coverage,
+// and saves you so much time!
 //
-// Given the following proto file (api.proto):
+// There are two main things this library provides; a parser for parsing protobuf files into some well-defined structs,
+// and an abstraction to make it simple to write your own protoc plugins.
 //
-//     syntax = "proto3";
-//     option go_package = "services";
+// Getting Started
 //
-//     import "google/protobuf/timestamp.proto";
+// For a quick view of how to get started, see https://godoc.org/github.com/pseudomuto/protokit/#example_RunPlugin
 //
-//     // A service for managing "todo" items.
-//     //
-//     // Add, complete, and remove your items on your todo lists.
-//     service Todo {
-//       // Creates a new todo list
-//       rpc CreateList(CreateListRequest) returns (CreateListResponse);
-//     }
-//
-//     // An enumeration of list types
-//     enum ListType {
-//       REMINDERS = 0; // The reminders type.
-//       CHECKLIST = 1; // The checklist type.
-//     }
-//
-//     // The list object.
-//     message List {
-//       int64 id                             = 1; // The id of the list.
-//       string name                          = 2; // The name of the list.
-//       ListType type                        = 3; // The list type.
-//       google.protobuf.Timestamp created_at = 4; // The timestamp of the creation.
-//     }
-//
-//     // A request object for creating lists
-//     message CreateListRequest {
-//       string name   = 1; // The name of the list.
-//       ListType type = 2; // The type of list to create.
-//     }
-//
-//     // A response for created lists
-//     message CreateListResponse {
-//       List list = 1; // The newly created list.
-//     }
-//
-//
-// A starter kit for building protoc-plugins. Rather than write your own, you can just use an existing one.
+// If you want see/try a working example, check out the examples in
+// https://github.com/pseudomuto/protokit/tree/master/examples.
 package protokit

@@ -32,8 +32,12 @@ const (
 	serviceMethodCommentPath = 2
 )
 
-// ParseCodeGenRequest parses the given request into `FileDescriptor` objects. Only the _FilesToGenerate_ will be parsed
+// ParseCodeGenRequest parses the given request into `FileDescriptor` objects. Only the `req.FilesToGenerate` will be parsed
 // here.
+//
+// For example, given the following invocation, only booking.proto will be parsed even if it imports other protos:
+//
+//     protoc --plugin=protoc-gen-test=./test -I. protos/booking.proto
 func ParseCodeGenRequest(req *plugin_go.CodeGeneratorRequest) []*FileDescriptor {
 	files := make([]*FileDescriptor, len(req.GetFileToGenerate()))
 
