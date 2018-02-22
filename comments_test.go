@@ -41,6 +41,9 @@ func (assert *CommentsTest) TestComments() {
 		assert.Equal(test.trailing, assert.comments[test.key].GetTrailing())
 		assert.Len(assert.comments[test.key].GetDetached(), 0)
 	}
+
+	assert.NotNil(assert.comments.Get("WONTBETHERE"))
+	assert.Equal("", assert.comments.Get("WONTBETHERE").String())
 }
 
 // Join the leading and trailing comments together

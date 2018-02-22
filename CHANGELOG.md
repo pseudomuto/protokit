@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 * `FileDescriptor{}.Imported` for referencing publically imported descriptors, enums, and extensions
+* `Comments{}.Get` to create empty comments (rather than `nil`) for all objects when a comment isn't defined.
 
 ## [0.1.0-pre2](https://github.com/pseudomuto/protokit/compare/v0.1.0-pre...v0.1.0-pre2) - 2018-02-22
 

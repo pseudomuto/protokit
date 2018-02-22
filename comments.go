@@ -79,6 +79,15 @@ func ParseComments(fd *descriptor.FileDescriptorProto) Comments {
 	return comments
 }
 
+func (c Comments) Get(path string) *Comment {
+	if val, ok := c[path]; ok {
+		return val
+	}
+
+	// return an empty comment
+	return &Comment{Detached: make([]string, 0)}
+}
+
 func scrub(str string) string {
 	return strings.TrimSpace(strings.Replace(str, "\n ", "\n", -1))
 }
