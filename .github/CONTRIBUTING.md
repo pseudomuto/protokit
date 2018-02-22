@@ -34,4 +34,10 @@ I don't want to be too dogmatic about this, but here are some general things I t
 * Test are defined in `<package>_test` packages to ensure only the public interface is tested
 * If you export something, make sure you add appropriate godoc comments
 
+## Tagging a Release
+
+* Set the `Version` in _version.go_
+* Update CHANGELOG.md with the relevant changes
+* `make release` - will commit everything, create a tag and push
+
 [retool]: https://github.com/twitchtv/retool

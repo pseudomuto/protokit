@@ -1,4 +1,6 @@
-.PHONY: bench setup test
+.PHONY: bench release setup test
+
+VERSION = $(shell cat version.go | sed -n 's/.*const Version = "\(.*\)"/\1/p')
 
 setup:
 	$(info Synching dev tools and dependencies...)
@@ -18,3 +20,10 @@ test: fixtures/fileset.pb
 
 test-ci: fixtures/fileset.pb bench
 	@retool do goverage -race -coverprofile=coverage.txt -covermode=atomic ./ ./utils
+
+release:
+	@echo Releasing v${VERSION}...
+	git add CHANGELOG.md version.go
+	git commit -m "Bump version to v${VERSION}"
+	git tag -m "Version ${VERSION}" "v${VERSION}"
+	git push && git push --tags
