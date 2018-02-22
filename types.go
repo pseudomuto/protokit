@@ -43,6 +43,11 @@ func (c *common) GetFullName() string { return c.FullName }
 // IsProto3 returns whether or not this is a proto3 object
 func (c *common) IsProto3() bool { return c.file.GetSyntax() == "proto3" }
 
+// An ImportedDescriptor describes a type that was imported by a FileDescriptor.
+type ImportedDescriptor struct {
+	common
+}
+
 // A FileDescriptor describes a single proto file with all of its messages, enums, services, etc.
 type FileDescriptor struct {
 	comments Comments
@@ -51,6 +56,7 @@ type FileDescriptor struct {
 	Comments   *Comment
 	Enums      []*EnumDescriptor
 	Extensions []*ExtensionDescriptor
+	Imports    []*ImportedDescriptor
 	Messages   []*Descriptor
 	Services   []*ServiceDescriptor
 }
@@ -66,6 +72,9 @@ func (f *FileDescriptor) GetEnums() []*EnumDescriptor { return f.Enums }
 
 // GetExtensions returns the top-level (file) extensions defined in this file
 func (f *FileDescriptor) GetExtensions() []*ExtensionDescriptor { return f.Extensions }
+
+// GetImports returns the proto files imported by this file
+func (f *FileDescriptor) GetImports() []*ImportedDescriptor { return f.Imports }
 
 // GetMessages returns the top-level messages defined in this file
 func (f *FileDescriptor) GetMessages() []*Descriptor { return f.Messages }

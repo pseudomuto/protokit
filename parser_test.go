@@ -1,7 +1,6 @@
 package protokit_test
 
 import (
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/stretchr/testify/suite"
 
 	"testing"
@@ -11,8 +10,8 @@ import (
 )
 
 var (
-	proto2 *descriptor.FileDescriptorProto
-	proto3 *descriptor.FileDescriptorProto
+	proto2 *protokit.FileDescriptor
+	proto3 *protokit.FileDescriptor
 )
 
 type ParserTest struct {
@@ -27,38 +26,35 @@ func (assert *ParserTest) SetupSuite() {
 	set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
 	assert.NoError(err)
 
-	proto2 = utils.FindDescriptor(set, "booking.proto")
-	proto3 = utils.FindDescriptor(set, "todo.proto")
-	assert.NotNil(proto2)
-	assert.NotNil(proto3)
-}
-
-func (assert *ParserTest) TestParseCodeGenRequest() {
-	set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
-	assert.NoError(err)
-
 	req := utils.CreateGenRequest(set, "booking.proto", "todo.proto")
 	files := protokit.ParseCodeGenRequest(req)
-	assert.Len(files, 2)
+	proto2 = files[0]
+	proto3 = files[1]
 }
 
-func (assert *ParserTest) TestParseFile() {
-	file := protokit.ParseFile(proto3)
-	assert.True(file.IsProto3())
-	assert.Contains(file.GetComments().String(), "The official documentation for the Todo API.\n\n")
-	assert.Len(file.GetExtensions(), 0) // no extensions in proto3
+func (assert *ParserTest) TestFileParsing() {
+	assert.True(proto3.IsProto3())
+	assert.Contains(proto3.GetComments().String(), "The official documentation for the Todo API.\n\n")
+	assert.Len(proto3.GetExtensions(), 0) // no extensions in proto3
 
-	file = protokit.ParseFile(proto2)
-	assert.False(file.IsProto3())
-	assert.Len(file.GetExtensions(), 1)
+	assert.False(proto2.IsProto3())
+	assert.Len(proto2.GetExtensions(), 1)
+}
+
+func (assert *ParserTest) TestFileImports() {
+	assert.Require().Len(proto3.GetImports(), 2)
+
+	imp := proto3.GetImports()[0]
+	assert.NotNil(imp.GetFile())
+	assert.Equal("ListItemDetails", imp.GetLongName())
+	assert.Equal("com.pseudomuto.protokit.v1.ListItemDetails", imp.GetFullName())
 }
 
 func (assert *ParserTest) TestFileEnums() {
-	file := protokit.ParseFile(proto3)
-	assert.Len(file.GetEnums(), 1)
-	assert.Nil(file.GetEnum("swingandamiss"))
+	assert.Len(proto3.GetEnums(), 1)
+	assert.Nil(proto3.GetEnum("swingandamiss"))
 
-	enum := file.GetEnum("ListType")
+	enum := proto3.GetEnum("ListType")
 	assert.Equal("ListType", enum.GetLongName())
 	assert.Equal("com.pseudomuto.protokit.v1.ListType", enum.GetFullName())
 	assert.True(enum.IsProto3())
@@ -76,8 +72,7 @@ func (assert *ParserTest) TestFileEnums() {
 }
 
 func (assert *ParserTest) TestFileExtensions() {
-	file := protokit.ParseFile(proto2)
-	ext := file.GetExtensions()[0]
+	ext := proto2.GetExtensions()[0]
 	assert.Nil(ext.GetParent())
 	assert.Equal("country", ext.GetName())
 	assert.Equal("BookingStatus.country", ext.GetLongName())
@@ -86,11 +81,10 @@ func (assert *ParserTest) TestFileExtensions() {
 }
 
 func (assert *ParserTest) TestServices() {
-	file := protokit.ParseFile(proto3)
-	assert.Len(file.GetServices(), 1)
-	assert.Nil(file.GetService("swingandamiss"))
+	assert.Len(proto3.GetServices(), 1)
+	assert.Nil(proto3.GetService("swingandamiss"))
 
-	svc := file.GetService("Todo")
+	svc := proto3.GetService("Todo")
 	assert.Equal("Todo", svc.GetLongName())
 	assert.Equal("com.pseudomuto.protokit.v1.Todo", svc.GetFullName())
 	assert.NotNil(svc.GetFile())
@@ -114,11 +108,10 @@ func (assert *ParserTest) TestServices() {
 }
 
 func (assert *ParserTest) TestFileMessages() {
-	file := protokit.ParseFile(proto3)
-	assert.Len(file.GetMessages(), 6)
-	assert.Nil(file.GetMessage("swingandamiss"))
+	assert.Len(proto3.GetMessages(), 6)
+	assert.Nil(proto3.GetMessage("swingandamiss"))
 
-	m := file.GetMessage("AddItemRequest")
+	m := proto3.GetMessage("AddItemRequest")
 	assert.Equal("AddItemRequest", m.GetName())
 	assert.Equal("AddItemRequest", m.GetLongName())
 	assert.Equal("com.pseudomuto.protokit.v1.AddItemRequest", m.GetFullName())
@@ -141,22 +134,21 @@ func (assert *ParserTest) TestFileMessages() {
 	assert.Equal("Whether or not the item is completed.", f.GetComments().String())
 
 	// just making sure google.protobuf.Any fields aren't special
-	m = file.GetMessage("List")
+	m = proto3.GetMessage("List")
 	f = m.GetMessageField("details")
 	assert.Equal("details", f.GetName())
 	assert.Equal("List.details", f.GetLongName())
 	assert.Equal("com.pseudomuto.protokit.v1.List.details", f.GetFullName())
 
 	// oneof fields should just expand to fields
-	file = protokit.ParseFile(proto2)
-	m = file.GetMessage("Booking")
+	m = proto2.GetMessage("Booking")
 	assert.NotNil(m.GetMessageField("reference_num"))
 	assert.NotNil(m.GetMessageField("reference_tag"))
 	assert.Equal("the numeric reference number", m.GetMessageField("reference_num").GetComments().String())
 }
 
 func (assert *ParserTest) TestMessageEnums() {
-	m := protokit.ParseFile(proto3).GetMessage("Item")
+	m := proto3.GetMessage("Item")
 	assert.NotNil(m.GetFile())
 	assert.Len(m.GetEnums(), 1)
 	assert.Nil(m.GetEnum("whodis"))
@@ -180,7 +172,7 @@ func (assert *ParserTest) TestMessageEnums() {
 }
 
 func (assert *ParserTest) TestMessageExtensions() {
-	m := protokit.ParseFile(proto2).GetMessage("Booking")
+	m := proto2.GetMessage("Booking")
 	ext := m.GetExtensions()[0]
 	assert.Equal(m, ext.GetParent())
 	assert.Equal(int32(101), ext.GetNumber())
@@ -191,7 +183,7 @@ func (assert *ParserTest) TestMessageExtensions() {
 }
 
 func (assert *ParserTest) TestNestedMessages() {
-	m := protokit.ParseFile(proto3).GetMessage("CreateListResponse")
+	m := proto3.GetMessage("CreateListResponse")
 	assert.Len(m.GetMessages(), 1)
 	assert.Nil(m.GetMessage("whodis"))
 

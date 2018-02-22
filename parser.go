@@ -7,8 +7,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-
-	"github.com/pseudomuto/protokit/utils"
 )
 
 const (
@@ -32,24 +30,29 @@ const (
 	serviceMethodCommentPath = 2
 )
 
-// ParseCodeGenRequest parses the given request into `FileDescriptor` objects. Only the `req.FilesToGenerate` will be parsed
-// here.
+// ParseCodeGenRequest parses the given request into `FileDescriptor` objects. Only the `req.FilesToGenerate` will be
+// returned.
 //
-// For example, given the following invocation, only booking.proto will be parsed even if it imports other protos:
+// For example, given the following invocation, only booking.proto will be returned even if it imports other protos:
 //
 //     protoc --plugin=protoc-gen-test=./test -I. protos/booking.proto
 func ParseCodeGenRequest(req *plugin_go.CodeGeneratorRequest) []*FileDescriptor {
-	files := make([]*FileDescriptor, len(req.GetFileToGenerate()))
+	allFiles := make(map[string]*FileDescriptor)
+	genFiles := make([]*FileDescriptor, len(req.GetFileToGenerate()))
 
-	for i, pf := range utils.FilesToGenerate(req) {
-		files[i] = ParseFile(pf)
+	for _, pf := range req.GetProtoFile() {
+		allFiles[pf.GetName()] = parseFile(context.Background(), pf)
 	}
 
-	return files
+	for i, f := range req.GetFileToGenerate() {
+		genFiles[i] = allFiles[f]
+		parseImports(genFiles[i], allFiles)
+	}
+
+	return genFiles
 }
 
-// ParseFile parses a `FileDescriptorProto` into a `FileDescriptor` struct.
-func ParseFile(fd *descriptor.FileDescriptorProto) *FileDescriptor {
+func parseFile(ctx context.Context, fd *descriptor.FileDescriptorProto) *FileDescriptor {
 	comments := ParseComments(fd)
 
 	file := &FileDescriptor{
@@ -58,11 +61,11 @@ func ParseFile(fd *descriptor.FileDescriptorProto) *FileDescriptor {
 		Comments:            comments[fmt.Sprintf("%d", packageCommentPath)],
 	}
 
-	ctx := ContextWithFileDescriptor(context.Background(), file)
-	file.Enums = parseEnums(ctx, fd.GetEnumType())
-	file.Extensions = parseExtensions(ctx, fd.GetExtension())
-	file.Messages = parseMessages(ctx, fd.GetMessageType())
-	file.Services = parseServices(ctx, fd.GetService())
+	fileCtx := ContextWithFileDescriptor(ctx, file)
+	file.Enums = parseEnums(fileCtx, fd.GetEnumType())
+	file.Extensions = parseExtensions(fileCtx, fd.GetExtension())
+	file.Messages = parseMessages(fileCtx, fd.GetMessageType())
+	file.Services = parseServices(fileCtx, fd.GetService())
 
 	return file
 }
@@ -141,6 +144,29 @@ func parseExtensions(ctx context.Context, protos []*descriptor.FieldDescriptorPr
 	}
 
 	return exts
+}
+
+func parseImports(fd *FileDescriptor, allFiles map[string]*FileDescriptor) {
+	fd.Imports = make([]*ImportedDescriptor, 0)
+
+	for _, index := range fd.GetPublicDependency() {
+		file := allFiles[fd.GetDependency()[index]]
+
+		for _, d := range file.GetMessages() {
+			// skip map entry objects
+			if !d.GetOptions().GetMapEntry() {
+				fd.Imports = append(fd.Imports, &ImportedDescriptor{d.common})
+			}
+		}
+
+		for _, e := range file.GetEnums() {
+			fd.Imports = append(fd.Imports, &ImportedDescriptor{e.common})
+		}
+
+		for _, ext := range file.GetExtensions() {
+			fd.Imports = append(fd.Imports, &ImportedDescriptor{ext.common})
+		}
+	}
 }
 
 func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []*Descriptor {

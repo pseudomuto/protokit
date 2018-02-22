@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
+import public "todo_import.proto";
 option go_package = "todo";
 
 // The official documentation for the Todo API.
@@ -72,6 +73,7 @@ message Item {
   string title                         = 2; // The title of the item.
   Status completed                     = 3; // The current status of the item.
   google.protobuf.Timestamp created_at = 4; // The timestamp for creation.
+  ListItemDetails details              = 5; // Item details.
 }
 
 // A request message for adding new items.
