@@ -16,7 +16,7 @@ func CreateGenRequest(fds *descriptor.FileDescriptorSet, filesToGen ...string) *
 	req.ProtoFile = fds.GetFile()
 
 	for _, f := range req.GetProtoFile() {
-		if InStringSlice(filesToGen, filepath.Base(f.GetName())) {
+		if InStringSlice(filesToGen, f.GetName()) {
 			req.FileToGenerate = append(req.FileToGenerate, f.GetName())
 		}
 	}
