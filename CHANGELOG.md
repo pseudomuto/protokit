@@ -4,7 +4,17 @@ All noteworthy changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/pseudomuto/protokit/compare/v0.1.0-pre3...master)
+## [Unreleased](https://github.com/pseudomuto/protokit/compare/v0.1.0...master)
+
+## [0.1.0](https://github.com/pseudomuto/protokit/compare/v0.1.0-pre3...v0.1.0)
+
+### Added
+
+* `(Get)PackageComments` and `(Get)SyntaxComments` to `FileDescriptor`
+
+### Deprecated
+
+* `Comments` and `GetComments()` from `FileDescriptor`
 
 ## [0.1.0-pre3](https://github.com/pseudomuto/protokit/compare/v0.1.0-pre2...v0.1.0-pre3)
 
