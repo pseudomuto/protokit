@@ -1,3 +1,4 @@
+// Top-level comments are attached to the syntax directive.
 syntax = "proto3";
 
 import "google/protobuf/any.proto";

@@ -16,6 +16,7 @@ const (
 	enumCommentPath      = 5
 	serviceCommentPath   = 6
 	extensionCommentPath = 7
+	syntaxCommentPath    = 12
 
 	// tag numbers in DescriptorProto
 	messageFieldCommentPath     = 2 // field
@@ -59,6 +60,8 @@ func parseFile(ctx context.Context, fd *descriptor.FileDescriptorProto) *FileDes
 		comments:            comments,
 		FileDescriptorProto: fd,
 		Comments:            comments.Get(fmt.Sprintf("%d", packageCommentPath)),
+		PackageComments:     comments.Get(fmt.Sprintf("%d", packageCommentPath)),
+		SyntaxComments:      comments.Get(fmt.Sprintf("%d", syntaxCommentPath)),
 	}
 
 	fileCtx := ContextWithFileDescriptor(ctx, file)

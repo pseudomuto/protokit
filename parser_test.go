@@ -34,7 +34,8 @@ func (assert *ParserTest) SetupSuite() {
 
 func (assert *ParserTest) TestFileParsing() {
 	assert.True(proto3.IsProto3())
-	assert.Contains(proto3.GetComments().String(), "The official documentation for the Todo API.\n\n")
+	assert.Equal("Top-level comments are attached to the syntax directive.", proto3.GetSyntaxComments().String())
+	assert.Contains(proto3.GetPackageComments().String(), "The official documentation for the Todo API.\n\n")
 	assert.Len(proto3.GetExtensions(), 0) // no extensions in proto3
 
 	assert.False(proto2.IsProto3())

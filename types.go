@@ -53,7 +53,10 @@ type FileDescriptor struct {
 	comments Comments
 	*descriptor.FileDescriptorProto
 
-	Comments   *Comment
+	Comments        *Comment // Deprecated: see PackageComments
+	PackageComments *Comment
+	SyntaxComments  *Comment
+
 	Enums      []*EnumDescriptor
 	Extensions []*ExtensionDescriptor
 	Imports    []*ImportedDescriptor
@@ -64,8 +67,16 @@ type FileDescriptor struct {
 // IsProto3 returns whether or not this file is a proto3 file
 func (f *FileDescriptor) IsProto3() bool { return f.GetSyntax() == "proto3" }
 
-// GetComments returns the file's package comments
+// GetComments returns the file's package comments.
+//
+// Deprecated: please see GetPackageComments
 func (f *FileDescriptor) GetComments() *Comment { return f.Comments }
+
+// GetPackageComments returns the file's package comments
+func (f *FileDescriptor) GetPackageComments() *Comment { return f.PackageComments }
+
+// GetSyntaxComments returns the file's syntax comments
+func (f *FileDescriptor) GetSyntaxComments() *Comment { return f.SyntaxComments }
 
 // GetEnums returns the top-level enumerations defined in this file
 func (f *FileDescriptor) GetEnums() []*EnumDescriptor { return f.Enums }
