@@ -93,6 +93,9 @@ func parseEnums(ctx context.Context, protos []*descriptor.EnumDescriptorProto) [
 			Comments:            file.comments.Get(commentPath),
 			Parent:              parent,
 		}
+		if ed.Options != nil {
+			enums[i].setOptions(ed.Options)
+		}
 
 		subCtx := ContextWithEnumDescriptor(ctx, enums[i])
 		enums[i].Values = parseEnumValues(subCtx, ed.GetValue())
@@ -114,6 +117,9 @@ func parseEnumValues(ctx context.Context, protos []*descriptor.EnumValueDescript
 			EnumValueDescriptorProto: vd,
 			Enum:     enum,
 			Comments: file.comments.Get(fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)),
+		}
+		if vd.Options != nil {
+			values[i].setOptions(vd.Options)
 		}
 	}
 
@@ -143,6 +149,9 @@ func parseExtensions(ctx context.Context, protos []*descriptor.FieldDescriptorPr
 			FieldDescriptorProto: ext,
 			Comments:             file.comments.Get(commentPath),
 			Parent:               parent,
+		}
+		if ext.Options != nil {
+			exts[i].setOptions(ext.Options)
 		}
 	}
 
@@ -192,6 +201,9 @@ func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []
 			Comments:        file.comments.Get(commentPath),
 			Parent:          parent,
 		}
+		if md.Options != nil {
+			msgs[i].setOptions(md.Options)
+		}
 
 		msgCtx := ContextWithDescriptor(ctx, msgs[i])
 		msgs[i].Enums = parseEnums(msgCtx, md.GetEnumType())
@@ -217,6 +229,9 @@ func parseMessageFields(ctx context.Context, protos []*descriptor.FieldDescripto
 			Comments:             file.comments.Get(fmt.Sprintf("%s.%d.%d", message.path, messageFieldCommentPath, i)),
 			Message:              message,
 		}
+		if fd.Options != nil {
+			fields[i].setOptions(fd.Options)
+		}
 	}
 
 	return fields
@@ -234,6 +249,9 @@ func parseServices(ctx context.Context, protos []*descriptor.ServiceDescriptorPr
 			common:                 newCommon(file, commentPath, longName),
 			ServiceDescriptorProto: sd,
 			Comments:               file.comments.Get(commentPath),
+		}
+		if sd.Options != nil {
+			svcs[i].setOptions(sd.Options)
 		}
 
 		svcCtx := ContextWithServiceDescriptor(ctx, svcs[i])
@@ -257,6 +275,9 @@ func parseServiceMethods(ctx context.Context, protos []*descriptor.MethodDescrip
 			MethodDescriptorProto: md,
 			Service:               svc,
 			Comments:              file.comments.Get(fmt.Sprintf("%s.%d.%d", svc.path, serviceMethodCommentPath, i)),
+		}
+		if md.Options != nil {
+			methods[i].setOptions(md.Options)
 		}
 	}
 

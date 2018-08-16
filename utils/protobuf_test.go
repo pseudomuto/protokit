@@ -26,6 +26,7 @@ func (assert *UtilsTest) TestCreateGenRequest() {
 	expectedProtos := []string{
 		"booking.proto",
 		"google/protobuf/any.proto",
+		"google/protobuf/descriptor.proto",
 		"google/protobuf/timestamp.proto",
 		"todo.proto",
 		"todo_import.proto",
@@ -49,7 +50,7 @@ func (assert *UtilsTest) TestFilesToGenerate() {
 func (assert *UtilsTest) TestLoadDescriptorSet() {
 	set, err := utils.LoadDescriptorSet("..", "fixtures", "fileset.pb")
 	assert.NoError(err)
-	assert.Len(set.GetFile(), 5)
+	assert.Len(set.GetFile(), 6)
 
 	assert.NotNil(utils.FindDescriptor(set, "todo.proto"))
 	assert.Nil(utils.FindDescriptor(set, "whodis.proto"))

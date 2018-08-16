@@ -1,5 +1,7 @@
 syntax = "proto2";
 
+import "google/protobuf/descriptor.proto";
+
 /**
  * Booking related messages.
  *
@@ -11,8 +13,26 @@ package com.pseudomuto.protokit.v1;
  * Service for handling vehicle bookings.
  */
 service BookingService {
+  option (com.pseudomuto.protokit.v1.extend_service) = true;
+
   /// Used to book a vehicle. Pass in a Booking and a BookingStatus will be returned.
-  rpc BookVehicle (Booking) returns (BookingStatus);
+  rpc BookVehicle (Booking) returns (BookingStatus) {
+    option (com.pseudomuto.protokit.v1.extend_method) = true;
+  };
+}
+
+/**
+ * Extension of protobuf service options.
+ */
+extend google.protobuf.ServiceOptions {
+  optional bool extend_service = 20000;
+}
+
+/**
+ * Extension of protobuf method options.
+ */
+extend google.protobuf.MethodOptions {
+  optional bool extend_method = 20000;
 }
 
 /**
@@ -37,15 +57,31 @@ message BookingStatus {
 // File-level extension
 extend BookingStatus {
   /* The country the booking occurred in. */
-  optional string country = 100 [default = "china"];
+  optional string country = 100 [default = "china", (com.pseudomuto.protokit.v1.extend_field) = true];
 }
 
 /**
  * The type of booking.
  */
 enum BookingType {
+  option (com.pseudomuto.protokit.v1.extend_enum) = true;
+
   IMMEDIATE = 100; // Immediate booking.
-  FUTURE    = 101; // Future booking.
+  FUTURE    = 101 [(com.pseudomuto.protokit.v1.extend_enum_value) = true]; // Future booking.
+}
+
+/**
+ * Extension of protobuf enum options.
+ */
+extend google.protobuf.EnumOptions {
+  optional bool extend_enum = 20000;
+}
+
+/**
+ * Extension of protobuf enum value options.
+ */
+extend google.protobuf.EnumValueOptions {
+  optional bool extend_enum_value = 20000;
 }
 
 /**
@@ -54,6 +90,8 @@ enum BookingType {
  * Vehicles are some cool shit. But drive carefully!
  */
 message Booking {
+  option (com.pseudomuto.protokit.v1.extend_message) = true;
+
   required int32 vehicle_id     = 1; /// ID of booked vehicle.
   required int32 customer_id    = 2; /// Customer that booked the vehicle.
   required BookingStatus status = 3; /// Status of the booking.
@@ -62,7 +100,7 @@ message Booking {
   required bool confirmation_sent = 4;
 
   /** Has payment been received? */
-  optional bool payment_received = 5 [default = false];
+  optional bool payment_received = 5 [default = true, (com.pseudomuto.protokit.v1.extend_field) = true];
 
   oneof things {
     int32 reference_num  = 6; // the numeric reference number
@@ -74,4 +112,18 @@ message Booking {
   extend BookingStatus {
     optional string optional_field_1 = 101; // An optional field to be used however you please.
   }
+}
+
+/**
+ * Extension of protobuf message options.
+ */
+extend google.protobuf.MessageOptions {
+  optional bool extend_message = 20000;
+}
+
+/**
+ * Extension of protobuf field options.
+ */
+extend google.protobuf.FieldOptions {
+  optional bool extend_field = 20000;
 }

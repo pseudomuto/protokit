@@ -23,6 +23,8 @@ func TestParser(t *testing.T) {
 }
 
 func (assert *ParserTest) SetupSuite() {
+	registerTestExtensions()
+
 	set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
 	assert.NoError(err)
 
@@ -39,7 +41,7 @@ func (assert *ParserTest) TestFileParsing() {
 	assert.Len(proto3.GetExtensions(), 0) // no extensions in proto3
 
 	assert.False(proto2.IsProto3())
-	assert.Len(proto2.GetExtensions(), 1)
+	assert.Len(proto2.GetExtensions(), 7)
 }
 
 func (assert *ParserTest) TestFileImports() {
@@ -73,7 +75,7 @@ func (assert *ParserTest) TestFileEnums() {
 }
 
 func (assert *ParserTest) TestFileExtensions() {
-	ext := proto2.GetExtensions()[0]
+	ext := proto2.GetExtensions()[2]
 	assert.Nil(ext.GetParent())
 	assert.Equal("country", ext.GetName())
 	assert.Equal("BookingStatus.country", ext.GetLongName())
@@ -206,4 +208,48 @@ func (assert *ParserTest) TestNestedMessages() {
 	assert.Equal("com.pseudomuto.protokit.v1.CreateListResponse.Status.code", f.GetFullName())
 	assert.NotNil(f.GetFile())
 	assert.Equal("The status code.", f.GetComments().String())
+}
+
+func (assert *ParserTest) TestExtendedOptions() {
+	service := proto2.GetService("BookingService")
+	assert.Contains(service.OptionExtensions, "com.pseudomuto.protokit.v1.extend_service")
+
+	extendedValue, ok := service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	method := service.GetNamedMethod("BookVehicle")
+	assert.Contains(method.OptionExtensions, "com.pseudomuto.protokit.v1.extend_method")
+
+	extendedValue, ok = method.OptionExtensions["com.pseudomuto.protokit.v1.extend_method"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	message := proto2.GetMessage("Booking")
+	assert.Contains(message.OptionExtensions, "com.pseudomuto.protokit.v1.extend_message")
+
+	extendedValue, ok = message.OptionExtensions["com.pseudomuto.protokit.v1.extend_message"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	field := message.GetMessageField("payment_received")
+	assert.Contains(field.OptionExtensions, "com.pseudomuto.protokit.v1.extend_field")
+
+	extendedValue, ok = field.OptionExtensions["com.pseudomuto.protokit.v1.extend_field"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	enum := proto2.GetEnum("BookingType")
+	assert.Contains(enum.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum")
+
+	extendedValue, ok = enum.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	enumValue := enum.GetNamedValue("FUTURE")
+	assert.Contains(enumValue.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum_value")
+
+	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
 }
