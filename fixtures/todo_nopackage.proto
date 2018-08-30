@@ -1,0 +1,7 @@
+// Top-level comments are attached to the syntax directive.
+syntax = "proto3";
+
+// An outer object.
+message Outer {
+  int64 dummy = 1;
+}

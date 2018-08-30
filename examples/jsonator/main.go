@@ -56,8 +56,15 @@ func newFile(fd *protokit.FileDescriptor) *file {
 		svcs[i] = newService(sd)
 	}
 
+	var filename string
+	if p := fd.GetPackage(); p != "" {
+		filename = fmt.Sprintf("%s.%s", p, fd.GetName())
+	} else {
+		filename = fd.GetName()
+	}
+
 	return &file{
-		Name:        fmt.Sprintf("%s.%s", fd.GetPackage(), fd.GetName()),
+		Name:        filename,
 		Description: fd.GetComments().String(),
 		Services:    svcs,
 	}

@@ -12,6 +12,8 @@ import (
 var (
 	proto2 *protokit.FileDescriptor
 	proto3 *protokit.FileDescriptor
+
+	noPackage *protokit.FileDescriptor
 )
 
 type ParserTest struct {
@@ -23,13 +25,26 @@ func TestParser(t *testing.T) {
 }
 
 func (assert *ParserTest) SetupSuite() {
-	set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
-	assert.NoError(err)
+	// File set with package set
+	{
+		set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
+		assert.NoError(err)
 
-	req := utils.CreateGenRequest(set, "booking.proto", "todo.proto")
-	files := protokit.ParseCodeGenRequest(req)
-	proto2 = files[0]
-	proto3 = files[1]
+		req := utils.CreateGenRequest(set, "booking.proto", "todo.proto")
+		files := protokit.ParseCodeGenRequest(req)
+		proto2 = files[0]
+		proto3 = files[1]
+	}
+
+	// File set without package set
+	{
+		set, err := utils.LoadDescriptorSet("fixtures", "fileset_nopackage.pb")
+		assert.NoError(err)
+
+		req := utils.CreateGenRequest(set, "todo_nopackage.proto")
+		files := protokit.ParseCodeGenRequest(req)
+		noPackage = files[0]
+	}
 }
 
 func (assert *ParserTest) TestFileParsing() {
@@ -206,4 +221,11 @@ func (assert *ParserTest) TestNestedMessages() {
 	assert.Equal("com.pseudomuto.protokit.v1.CreateListResponse.Status.code", f.GetFullName())
 	assert.NotNil(f.GetFile())
 	assert.Equal("The status code.", f.GetComments().String())
+}
+
+func (assert *ParserTest) TestNoPackage() {
+	assert.Equal("", noPackage.GetPackage())
+
+	m := noPackage.GetMessage("Outer")
+	assert.Equal("Outer", m.GetFullName())
 }
