@@ -17,7 +17,9 @@ type common struct {
 func newCommon(f *FileDescriptor, path, longName string) common {
 	fn := longName
 	if !strings.HasPrefix(fn, ".") {
-		fn = fmt.Sprintf("%s.%s", f.GetPackage(), longName)
+		if p := f.GetPackage(); p != "" {
+			fn = fmt.Sprintf("%s.%s", p, longName)
+		}
 	}
 
 	return common{
