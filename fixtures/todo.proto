@@ -3,6 +3,7 @@ syntax = "proto3";
 
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
+import "extend.proto";
 import public "todo_import.proto";
 option go_package = "todo";
 
@@ -21,8 +22,12 @@ package com.pseudomuto.protokit.v1;
 //
 // Add, complete, and remove your items on your todo lists.
 service Todo {
+  option (com.pseudomuto.protokit.v1.extend_service) = true;
+
   // Create a new todo list
-  rpc CreateList(CreateListRequest) returns (CreateListResponse);
+  rpc CreateList(CreateListRequest) returns (CreateListResponse) {
+    option (com.pseudomuto.protokit.v1.extend_method) = true;
+  }
 
   // Add an item to your list
   //
@@ -32,14 +37,18 @@ service Todo {
 
 // An enumeration of list types
 enum ListType {
+  option (com.pseudomuto.protokit.v1.extend_enum) = true;
+
   REMINDERS = 0; // The reminders type.
-  CHECKLIST = 1; // The checklist type.
+  CHECKLIST = 1 [(com.pseudomuto.protokit.v1.extend_enum_value) = true]; // The checklist type.
 }
 
 // A list object.
 message List {
+  option (com.pseudomuto.protokit.v1.extend_message) = true;
+
   int64 id                             = 1; // The id of the list.
-  string name                          = 2; // The name of the list.
+  string name                          = 2 [(com.pseudomuto.protokit.v1.extend_field) = true]; // The name of the list.
   ListType type                        = 3; // The type of list
   google.protobuf.Timestamp created_at = 4; // The timestamp for creation.
   google.protobuf.Any details          = 5; // Some arbitrary list details.

@@ -317,4 +317,46 @@ func (assert *ParserTest) TestExtendedOptions() {
 	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(*bool)
 	assert.True(ok)
 	assert.True(*extendedValue)
+
+	service = proto3.GetService("Todo")
+	assert.Contains(service.OptionExtensions, "com.pseudomuto.protokit.v1.extend_service")
+
+	extendedValue, ok = service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	method = service.GetNamedMethod("CreateList")
+	assert.Contains(method.OptionExtensions, "com.pseudomuto.protokit.v1.extend_method")
+
+	extendedValue, ok = method.OptionExtensions["com.pseudomuto.protokit.v1.extend_method"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	message = proto3.GetMessage("List")
+	assert.Contains(message.OptionExtensions, "com.pseudomuto.protokit.v1.extend_message")
+
+	extendedValue, ok = message.OptionExtensions["com.pseudomuto.protokit.v1.extend_message"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	field = message.GetMessageField("name")
+	assert.Contains(field.OptionExtensions, "com.pseudomuto.protokit.v1.extend_field")
+
+	extendedValue, ok = field.OptionExtensions["com.pseudomuto.protokit.v1.extend_field"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	enum = proto3.GetEnum("ListType")
+	assert.Contains(enum.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum")
+
+	extendedValue, ok = enum.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	enumValue = enum.GetNamedValue("CHECKLIST")
+	assert.Contains(enumValue.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum_value")
+
+	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
 }
