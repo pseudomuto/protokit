@@ -106,7 +106,7 @@ func (assert *ParserTest) TestFileParsing() {
 	assert.Len(proto3.GetExtensions(), 0) // no extensions in proto3
 
 	assert.False(proto2.IsProto3())
-	assert.Len(proto2.GetExtensions(), 7)
+	assert.Len(proto2.GetExtensions(), 1)
 }
 
 func (assert *ParserTest) TestFileImports() {
@@ -140,7 +140,7 @@ func (assert *ParserTest) TestFileEnums() {
 }
 
 func (assert *ParserTest) TestFileExtensions() {
-	ext := proto2.GetExtensions()[2]
+	ext := proto2.GetExtensions()[0]
 	assert.Nil(ext.GetParent())
 	assert.Equal("country", ext.GetName())
 	assert.Equal("BookingStatus.country", ext.GetLongName())
