@@ -4,6 +4,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pseudomuto/protokit"
+	"google.golang.org/genproto/googleapis/api/annotations"
 
 	"bytes"
 	"encoding/json"
@@ -64,15 +65,41 @@ func newFile(fd *protokit.FileDescriptor) *file {
 }
 
 type service struct {
-	Name    string   `json:"name"`
-	Methods []string `json:"methods"`
+	Name    string    `json:"name"`
+	Methods []*method `json:"methods"`
 }
 
 func newService(sd *protokit.ServiceDescriptor) *service {
-	methods := make([]string, len(sd.GetMethods()))
+	methods := make([]*method, len(sd.GetMethods()))
 	for i, md := range sd.GetMethods() {
-		methods[i] = md.GetName()
+		methods[i] = newMethod(md)
 	}
 
 	return &service{Name: sd.GetName(), Methods: methods}
+}
+
+type method struct {
+	Name      string   `json:"name"`
+	HTTPRules []string `json:"http_rules"`
+}
+
+func newMethod(md *protokit.MethodDescriptor) *method {
+	httpRules := make([]string, 0)
+	if httpRule, ok := md.OptionExtensions["google.api.http"].(*annotations.HttpRule); ok {
+		switch httpRule.GetPattern().(type) {
+		case *annotations.HttpRule_Get:
+			httpRules = append(httpRules, fmt.Sprintf("GET %s", httpRule.GetGet()))
+		case *annotations.HttpRule_Put:
+			httpRules = append(httpRules, fmt.Sprintf("PUT %s", httpRule.GetPut()))
+		case *annotations.HttpRule_Post:
+			httpRules = append(httpRules, fmt.Sprintf("POST %s", httpRule.GetPost()))
+		case *annotations.HttpRule_Delete:
+			httpRules = append(httpRules, fmt.Sprintf("DELETE %s", httpRule.GetDelete()))
+		case *annotations.HttpRule_Patch:
+			httpRules = append(httpRules, fmt.Sprintf("PATCH %s", httpRule.GetPatch()))
+		}
+		// Append more for each rule in httpRule.AdditionalBindings...
+	}
+
+	return &method{Name: md.GetName(), HTTPRules: httpRules}
 }

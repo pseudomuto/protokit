@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
 // This is just a sample proto for demonstrating how to use this library.
@@ -8,7 +9,9 @@ import "google/protobuf/empty.proto";
 package com.jsonator.v1;
 
 service SampleService {
-  rpc RandomSample(google.protobuf.Empty) returns (Sample);
+  rpc RandomSample(google.protobuf.Empty) returns (Sample) {
+    option (google.api.http).get = "/v1/sample";
+  }
 }
 
 message Sample {

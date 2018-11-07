@@ -1,6 +1,8 @@
 package protokit_test
 
 import (
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/stretchr/testify/suite"
 
 	"testing"
@@ -23,6 +25,8 @@ func TestParser(t *testing.T) {
 }
 
 func (assert *ParserTest) SetupSuite() {
+	registerTestExtensions()
+
 	set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
 	assert.NoError(err)
 
@@ -30,6 +34,69 @@ func (assert *ParserTest) SetupSuite() {
 	files := protokit.ParseCodeGenRequest(req)
 	proto2 = files[0]
 	proto3 = files[1]
+}
+
+func registerTestExtensions() {
+	var E_ExtendService = &proto.ExtensionDesc{
+		ExtendedType:  (*descriptor.ServiceOptions)(nil),
+		ExtensionType: (*bool)(nil),
+		Field:         20000,
+		Name:          "com.pseudomuto.protokit.v1.extend_service",
+		Tag:           "varint,20000,opt,name=extend_service,json=extendService",
+		Filename:      "extend.proto",
+	}
+
+	var E_ExtendMethod = &proto.ExtensionDesc{
+		ExtendedType:  (*descriptor.MethodOptions)(nil),
+		ExtensionType: (*bool)(nil),
+		Field:         20000,
+		Name:          "com.pseudomuto.protokit.v1.extend_method",
+		Tag:           "varint,20000,opt,name=extend_method,json=extendMethod",
+		Filename:      "extend.proto",
+	}
+
+	var E_ExtendEnum = &proto.ExtensionDesc{
+		ExtendedType:  (*descriptor.EnumOptions)(nil),
+		ExtensionType: (*bool)(nil),
+		Field:         20000,
+		Name:          "com.pseudomuto.protokit.v1.extend_enum",
+		Tag:           "varint,20000,opt,name=extend_enum,json=extendEnum",
+		Filename:      "extend.proto",
+	}
+
+	var E_ExtendEnumValue = &proto.ExtensionDesc{
+		ExtendedType:  (*descriptor.EnumValueOptions)(nil),
+		ExtensionType: (*bool)(nil),
+		Field:         20000,
+		Name:          "com.pseudomuto.protokit.v1.extend_enum_value",
+		Tag:           "varint,20000,opt,name=extend_enum_value,json=extendEnumValue",
+		Filename:      "extend.proto",
+	}
+
+	var E_ExtendMessage = &proto.ExtensionDesc{
+		ExtendedType:  (*descriptor.MessageOptions)(nil),
+		ExtensionType: (*bool)(nil),
+		Field:         20000,
+		Name:          "com.pseudomuto.protokit.v1.extend_message",
+		Tag:           "varint,20000,opt,name=extend_message,json=extendMessage",
+		Filename:      "extend.proto",
+	}
+
+	var E_ExtendField = &proto.ExtensionDesc{
+		ExtendedType:  (*descriptor.FieldOptions)(nil),
+		ExtensionType: (*bool)(nil),
+		Field:         20000,
+		Name:          "com.pseudomuto.protokit.v1.extend_field",
+		Tag:           "varint,20000,opt,name=extend_field,json=extendField",
+		Filename:      "extend.proto",
+	}
+
+	proto.RegisterExtension(E_ExtendService)
+	proto.RegisterExtension(E_ExtendMethod)
+	proto.RegisterExtension(E_ExtendEnum)
+	proto.RegisterExtension(E_ExtendEnumValue)
+	proto.RegisterExtension(E_ExtendMessage)
+	proto.RegisterExtension(E_ExtendField)
 }
 
 func (assert *ParserTest) TestFileParsing() {
@@ -206,4 +273,90 @@ func (assert *ParserTest) TestNestedMessages() {
 	assert.Equal("com.pseudomuto.protokit.v1.CreateListResponse.Status.code", f.GetFullName())
 	assert.NotNil(f.GetFile())
 	assert.Equal("The status code.", f.GetComments().String())
+}
+
+func (assert *ParserTest) TestExtendedOptions() {
+	service := proto2.GetService("BookingService")
+	assert.Contains(service.OptionExtensions, "com.pseudomuto.protokit.v1.extend_service")
+
+	extendedValue, ok := service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	method := service.GetNamedMethod("BookVehicle")
+	assert.Contains(method.OptionExtensions, "com.pseudomuto.protokit.v1.extend_method")
+
+	extendedValue, ok = method.OptionExtensions["com.pseudomuto.protokit.v1.extend_method"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	message := proto2.GetMessage("Booking")
+	assert.Contains(message.OptionExtensions, "com.pseudomuto.protokit.v1.extend_message")
+
+	extendedValue, ok = message.OptionExtensions["com.pseudomuto.protokit.v1.extend_message"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	field := message.GetMessageField("payment_received")
+	assert.Contains(field.OptionExtensions, "com.pseudomuto.protokit.v1.extend_field")
+
+	extendedValue, ok = field.OptionExtensions["com.pseudomuto.protokit.v1.extend_field"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	enum := proto2.GetEnum("BookingType")
+	assert.Contains(enum.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum")
+
+	extendedValue, ok = enum.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	enumValue := enum.GetNamedValue("FUTURE")
+	assert.Contains(enumValue.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum_value")
+
+	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	service = proto3.GetService("Todo")
+	assert.Contains(service.OptionExtensions, "com.pseudomuto.protokit.v1.extend_service")
+
+	extendedValue, ok = service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	method = service.GetNamedMethod("CreateList")
+	assert.Contains(method.OptionExtensions, "com.pseudomuto.protokit.v1.extend_method")
+
+	extendedValue, ok = method.OptionExtensions["com.pseudomuto.protokit.v1.extend_method"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	message = proto3.GetMessage("List")
+	assert.Contains(message.OptionExtensions, "com.pseudomuto.protokit.v1.extend_message")
+
+	extendedValue, ok = message.OptionExtensions["com.pseudomuto.protokit.v1.extend_message"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	field = message.GetMessageField("name")
+	assert.Contains(field.OptionExtensions, "com.pseudomuto.protokit.v1.extend_field")
+
+	extendedValue, ok = field.OptionExtensions["com.pseudomuto.protokit.v1.extend_field"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	enum = proto3.GetEnum("ListType")
+	assert.Contains(enum.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum")
+
+	extendedValue, ok = enum.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	enumValue = enum.GetNamedValue("CHECKLIST")
+	assert.Contains(enumValue.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum_value")
+
+	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
 }

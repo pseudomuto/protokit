@@ -1,6 +1,7 @@
 package protokit
 
 import (
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 
 	"fmt"
@@ -12,6 +13,8 @@ type common struct {
 	path     string
 	LongName string
 	FullName string
+
+	OptionExtensions map[string]interface{}
 }
 
 func newCommon(f *FileDescriptor, path, longName string) common {
@@ -42,6 +45,22 @@ func (c *common) GetFullName() string { return c.FullName }
 
 // IsProto3 returns whether or not this is a proto3 object
 func (c *common) IsProto3() bool { return c.file.GetSyntax() == "proto3" }
+
+func (c *common) setOptions(options proto.Message) {
+	for _, extension := range proto.RegisteredExtensions(options) {
+		if !proto.HasExtension(options, extension) {
+			continue
+		}
+		ext, err := proto.GetExtension(options, extension)
+		if err != nil {
+			continue
+		}
+		if c.OptionExtensions == nil {
+			c.OptionExtensions = make(map[string]interface{})
+		}
+		c.OptionExtensions[extension.Name] = ext
+	}
+}
 
 // An ImportedDescriptor describes a type that was imported by a FileDescriptor.
 type ImportedDescriptor struct {

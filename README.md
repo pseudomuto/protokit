@@ -18,6 +18,7 @@ import (
     "github.com/golang/protobuf/proto"
     "github.com/golang/protobuf/protoc-gen-go/plugin"
     "github.com/pseudomuto/protokit"
+    _ "google.golang.org/genproto/googleapis/api/annotations" // Support (google.api.http) option (from google/api/annotations.proto).
 
     "log"
 )
