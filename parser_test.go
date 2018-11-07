@@ -37,6 +37,15 @@ func (assert *ParserTest) SetupSuite() {
 }
 
 func registerTestExtensions() {
+	var E_ExtendFile = &proto.ExtensionDesc{
+		ExtendedType:  (*descriptor.FileOptions)(nil),
+		ExtensionType: (*bool)(nil),
+		Field:         20000,
+		Name:          "com.pseudomuto.protokit.v1.extend_file",
+		Tag:           "varint,20000,opt,name=extend_file,json=extendFile",
+		Filename:      "extend.proto",
+	}
+
 	var E_ExtendService = &proto.ExtensionDesc{
 		ExtendedType:  (*descriptor.ServiceOptions)(nil),
 		ExtensionType: (*bool)(nil),
@@ -91,6 +100,7 @@ func registerTestExtensions() {
 		Filename:      "extend.proto",
 	}
 
+	proto.RegisterExtension(E_ExtendFile)
 	proto.RegisterExtension(E_ExtendService)
 	proto.RegisterExtension(E_ExtendMethod)
 	proto.RegisterExtension(E_ExtendEnum)
@@ -276,10 +286,16 @@ func (assert *ParserTest) TestNestedMessages() {
 }
 
 func (assert *ParserTest) TestExtendedOptions() {
+	assert.Contains(proto2.OptionExtensions, "com.pseudomuto.protokit.v1.extend_file")
+
+	extendedValue, ok := proto2.OptionExtensions["com.pseudomuto.protokit.v1.extend_file"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
 	service := proto2.GetService("BookingService")
 	assert.Contains(service.OptionExtensions, "com.pseudomuto.protokit.v1.extend_service")
 
-	extendedValue, ok := service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(*bool)
+	extendedValue, ok = service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(*bool)
 	assert.True(ok)
 	assert.True(*extendedValue)
 
@@ -315,6 +331,12 @@ func (assert *ParserTest) TestExtendedOptions() {
 	assert.Contains(enumValue.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum_value")
 
 	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(*bool)
+	assert.True(ok)
+	assert.True(*extendedValue)
+
+	assert.Contains(proto3.OptionExtensions, "com.pseudomuto.protokit.v1.extend_file")
+
+	extendedValue, ok = proto3.OptionExtensions["com.pseudomuto.protokit.v1.extend_file"].(*bool)
 	assert.True(ok)
 	assert.True(*extendedValue)
 
