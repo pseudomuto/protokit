@@ -18,6 +18,8 @@ option go_package = "todo";
 // * `make test`
 package com.pseudomuto.protokit.v1;
 
+option (com.pseudomuto.protokit.v1.extend_file) = true;
+
 // A service for managing "todo" items.
 //
 // Add, complete, and remove your items on your todo lists.

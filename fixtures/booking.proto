@@ -9,6 +9,8 @@ import "extend.proto";
  */
 package com.pseudomuto.protokit.v1;
 
+option (com.pseudomuto.protokit.v1.extend_file) = true;
+
 /**
  * Service for handling vehicle bookings.
  */

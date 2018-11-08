@@ -46,7 +46,7 @@ func (c *common) GetFullName() string { return c.FullName }
 // IsProto3 returns whether or not this is a proto3 object
 func (c *common) IsProto3() bool { return c.file.GetSyntax() == "proto3" }
 
-func (c *common) setOptions(options proto.Message) {
+func getOptions(options proto.Message) (m map[string]interface{}) {
 	for _, extension := range proto.RegisteredExtensions(options) {
 		if !proto.HasExtension(options, extension) {
 			continue
@@ -55,10 +55,23 @@ func (c *common) setOptions(options proto.Message) {
 		if err != nil {
 			continue
 		}
-		if c.OptionExtensions == nil {
-			c.OptionExtensions = make(map[string]interface{})
+		if m == nil {
+			m = make(map[string]interface{})
 		}
-		c.OptionExtensions[extension.Name] = ext
+		m[extension.Name] = ext
+	}
+	return m
+}
+
+func (c *common) setOptions(options proto.Message) {
+	if opts := getOptions(options); len(opts) > 0 {
+		if c.OptionExtensions == nil {
+			c.OptionExtensions = opts
+			return
+		}
+		for k, v := range opts {
+			c.OptionExtensions[k] = v
+		}
 	}
 }
 
@@ -81,6 +94,8 @@ type FileDescriptor struct {
 	Imports    []*ImportedDescriptor
 	Messages   []*Descriptor
 	Services   []*ServiceDescriptor
+
+	OptionExtensions map[string]interface{}
 }
 
 // IsProto3 returns whether or not this file is a proto3 file
@@ -143,6 +158,18 @@ func (f *FileDescriptor) GetService(name string) *ServiceDescriptor {
 	}
 
 	return nil
+}
+
+func (f *FileDescriptor) setOptions(options proto.Message) {
+	if opts := getOptions(options); len(opts) > 0 {
+		if f.OptionExtensions == nil {
+			f.OptionExtensions = opts
+			return
+		}
+		for k, v := range opts {
+			f.OptionExtensions[k] = v
+		}
+	}
 }
 
 // An EnumDescriptor describe an enum type

@@ -5,6 +5,13 @@ import "google/protobuf/descriptor.proto";
 package com.pseudomuto.protokit.v1;
 
 /**
+ * Extension of protobuf file options.
+ */
+ extend google.protobuf.FileOptions {
+  optional bool extend_file = 20000;
+}
+
+/**
  * Extension of protobuf service options.
  */
  extend google.protobuf.ServiceOptions {

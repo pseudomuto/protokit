@@ -64,6 +64,10 @@ func parseFile(ctx context.Context, fd *descriptor.FileDescriptorProto) *FileDes
 		SyntaxComments:      comments.Get(fmt.Sprintf("%d", syntaxCommentPath)),
 	}
 
+	if fd.Options != nil {
+		file.setOptions(fd.Options)
+	}
+
 	fileCtx := ContextWithFileDescriptor(ctx, file)
 	file.Enums = parseEnums(fileCtx, fd.GetEnumType())
 	file.Extensions = parseExtensions(fileCtx, fd.GetExtension())
