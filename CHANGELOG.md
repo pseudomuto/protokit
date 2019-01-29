@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * Support for extended options in files, services, methods, enums, enum values, messages and fields. For example, the [`google.api.http` method option](https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api#httprule).
 
+### Changed
+
+* Using go modules over dep
+* Updating protoc to 3.6.1 in CI
+
 ## [0.1.0](https://github.com/pseudomuto/protokit/compare/v0.1.0-pre3...v0.1.0)
 
 ### Added
