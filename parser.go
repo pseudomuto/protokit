@@ -183,7 +183,8 @@ func parseImports(fd *FileDescriptor, allFiles map[string]*FileDescriptor) {
 			fd.Imports = append(fd.Imports, &ImportedDescriptor{ext.common})
 		}
 	}
-	for file := range fd.GetDependency() {
+	for _, dep := range fd.GetDependency() {
+		file := allFiles[dep]
 		for _, d := range file.GetMessages() {
 			// skip map entry objects
 			if !d.GetOptions().GetMapEntry() {
