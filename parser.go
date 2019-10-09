@@ -183,6 +183,22 @@ func parseImports(fd *FileDescriptor, allFiles map[string]*FileDescriptor) {
 			fd.Imports = append(fd.Imports, &ImportedDescriptor{ext.common})
 		}
 	}
+	for file := range fd.GetDependency() {
+		for _, d := range file.GetMessages() {
+			// skip map entry objects
+			if !d.GetOptions().GetMapEntry() {
+				fd.Imports = append(fd.Imports, &ImportedDescriptor{d.common})
+			}
+		}
+
+		for _, e := range file.GetEnums() {
+			fd.Imports = append(fd.Imports, &ImportedDescriptor{e.common})
+		}
+
+		for _, ext := range file.GetExtensions() {
+			fd.Imports = append(fd.Imports, &ImportedDescriptor{ext.common})
+		}
+	}
 }
 
 func parseMessages(ctx context.Context, protos []*descriptor.DescriptorProto) []*Descriptor {
