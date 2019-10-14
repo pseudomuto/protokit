@@ -1,11 +1,10 @@
 package protokit
 
 import (
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
-
 	"context"
 	"fmt"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/golang/protobuf/protoc-gen-go/plugin"
 	"strings"
 )
 
@@ -47,7 +46,7 @@ func ParseCodeGenRequest(req *plugin_go.CodeGeneratorRequest) []*FileDescriptor 
 
 	for i, f := range req.GetFileToGenerate() {
 		genFiles[i] = allFiles[f]
-		parseImports(genFiles[i], allFiles)
+		parseAllImports(genFiles[i], allFiles)
 	}
 
 	return genFiles
@@ -117,10 +116,10 @@ func parseEnumValues(ctx context.Context, protos []*descriptor.EnumValueDescript
 		longName := fmt.Sprintf("%s.%s", enum.GetLongName(), vd.GetName())
 
 		values[i] = &EnumValueDescriptor{
-			common: newCommon(file, "", longName),
+			common:                   newCommon(file, "", longName),
 			EnumValueDescriptorProto: vd,
-			Enum:     enum,
-			Comments: file.comments.Get(fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)),
+			Enum:                     enum,
+			Comments:                 file.comments.Get(fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)),
 		}
 		if vd.Options != nil {
 			values[i].setOptions(vd.Options)
@@ -162,26 +161,56 @@ func parseExtensions(ctx context.Context, protos []*descriptor.FieldDescriptorPr
 	return exts
 }
 
-func parseImports(fd *FileDescriptor, allFiles map[string]*FileDescriptor) {
+func parseAllImports(fd *FileDescriptor, allFiles map[string]*FileDescriptor) {
+	impDesc := make(map[string]*ImportedDescriptor)
+	parseImports(&impDesc, fd, allFiles)
+	parsePublicImport(&impDesc, fd, allFiles)
 	fd.Imports = make([]*ImportedDescriptor, 0)
+	for _, d := range impDesc {
+		fd.Imports = append(fd.Imports, d)
+	}
+}
 
+func parseImports(impDesc *map[string]*ImportedDescriptor, fd *FileDescriptor, allFiles map[string]*FileDescriptor) {
+	for _, dep := range fd.GetDependency() {
+		file := allFiles[dep]
+		for _, d := range file.GetMessages() {
+			// skip map entry objects
+			if !d.GetOptions().GetMapEntry() {
+				(*impDesc)[d.common.LongName] = &ImportedDescriptor{d.common}
+			}
+		}
+
+		for _, e := range file.GetEnums() {
+			(*impDesc)[e.common.LongName] = &ImportedDescriptor{e.common}
+		}
+
+		for _, ext := range file.GetExtensions() {
+			(*impDesc)[ext.common.LongName] = &ImportedDescriptor{ext.common}
+		}
+		parsePublicImport(impDesc, file, allFiles)
+	}
+}
+
+func parsePublicImport(impDesc *map[string]*ImportedDescriptor, fd *FileDescriptor, allFiles map[string]*FileDescriptor) {
 	for _, index := range fd.GetPublicDependency() {
 		file := allFiles[fd.GetDependency()[index]]
 
 		for _, d := range file.GetMessages() {
 			// skip map entry objects
 			if !d.GetOptions().GetMapEntry() {
-				fd.Imports = append(fd.Imports, &ImportedDescriptor{d.common})
+				(*impDesc)[d.common.LongName] = &ImportedDescriptor{d.common}
 			}
 		}
 
 		for _, e := range file.GetEnums() {
-			fd.Imports = append(fd.Imports, &ImportedDescriptor{e.common})
+			(*impDesc)[e.common.LongName] = &ImportedDescriptor{e.common}
 		}
 
 		for _, ext := range file.GetExtensions() {
-			fd.Imports = append(fd.Imports, &ImportedDescriptor{ext.common})
+			(*impDesc)[ext.common.LongName] = &ImportedDescriptor{ext.common}
 		}
+		parsePublicImport(impDesc, file, allFiles)
 	}
 }
 
