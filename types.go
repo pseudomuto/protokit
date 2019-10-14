@@ -259,6 +259,9 @@ func (m *Descriptor) GetMessages() []*Descriptor { return m.Messages }
 // GetMessageFields returns the message fields
 func (m *Descriptor) GetMessageFields() []*FieldDescriptor { return m.Fields }
 
+// GetFileDescriptor returns the file descriptor
+func (m *Descriptor) GetFileDescriptor() *FileDescriptor { return m.common.file }
+
 // GetEnum returns the enum with the specified name. The name can be either simple, or fully qualified (returns `nil` if
 // not found)
 func (m *Descriptor) GetEnum(name string) *EnumDescriptor {
