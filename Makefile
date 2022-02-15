@@ -54,7 +54,7 @@ build-tool:
 	TMP_DIR=$$(mktemp -d); \
 	cd $$TMP_DIR; \
 	go mod init tmp; \
-	GOBIN=$(TOOLPATH) go install $(TOOLPKG); \
+	GOBIN=$(TOOLPATH) go get $(TOOLPKG); \
 	rm -rf $$TMP_DIR; \
 	}
 
