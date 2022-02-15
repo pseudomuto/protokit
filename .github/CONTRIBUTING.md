@@ -31,6 +31,5 @@ I don't want to be too dogmatic about this, but here are some general things I t
 
 ## Tagging a Release
 
-* Set the `Version` in _version.go_
-* Update CHANGELOG.md with the relevant changes
-* `make release` - will commit everything, create a tag and push
+* Ensure you're on a clean master
+* Run `make release`

@@ -27,17 +27,23 @@ test/ci: $(TOOLPATH)/goverage fixtures/fileset.pb test/bench ## Run CI tests inc
 	@bin/goverage -race -coverprofile=coverage.txt -covermode=atomic $(TEST_PKGS)
 
 ##@ Release
+release:
+	git tag v$(VERSION)
+	git push origin --tags
 
-release: ## Release a new version
-	@echo Releasing v${VERSION}...
-	git add CHANGELOG.md version.go
-	git commit -m "Bump version to v${VERSION}"
-	git tag -m "Version ${VERSION}" "v${VERSION}"
-	git push && git push --tags
+release/snapshot: $(TOOLPATH)/goreleaser ## Create a local release snapshot
+	@bin/goreleaser --snapshot --rm-dist
+
+release/validate: $(TOOLPATH)/goreleaser ## Run goreleaser checks
+	@bin/goreleaser check
 
 ################################################################################
 # Indirect targets
 ################################################################################
+$(TOOLPATH)/goreleaser:
+	@echo "$(CYAN)Installing goreleaser v1.5.0...$(CLEAR)"
+	@TOOLPKG=github.com/goreleaser/goreleaser@v1.5.0 make build-tool
+
 $(TOOLPATH)/goverage:
 	@echo "$(CYAN)Installing goverage...$(CLEAR)"
 	@TOOLPKG=github.com/haya14busa/goverage make build-tool
@@ -48,7 +54,7 @@ build-tool:
 	TMP_DIR=$$(mktemp -d); \
 	cd $$TMP_DIR; \
 	go mod init tmp; \
-	GOBIN=$(TOOLPATH) go get $(TOOLPKG); \
+	GOBIN=$(TOOLPATH) go install $(TOOLPKG); \
 	rm -rf $$TMP_DIR; \
 	}
 
