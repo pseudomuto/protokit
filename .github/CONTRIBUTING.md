@@ -4,12 +4,7 @@ First off, glad you're here and want to contribute! :heart:
 
 ## Getting Started
 
-There are a number of dev tools required to work with Protokit. To make this a little cleaner and less invasive on your
-global $GOPATH, we've elected to use [retool]. This also has the advantage of pinning things like `dep`, or
-`protoc-gen-*` to specific versions to avoid inconsistencies between dev machines.
-
-Running `make setup` will fetch [retool] (if it's not installed) and install vendored versions of dep and other tools in
-the _tools/_ directory (git ignored). This should be sufficient to get you started.
+It's always good to start simple. Clone the repo and `make test` to make sure you're starting from a good place.
 
 ## Submitting a PR
 
@@ -30,14 +25,12 @@ PR template that should help with this.
 I don't want to be too dogmatic about this, but here are some general things I try to keep in mind:
 
 * GoFmt all the things!
-* Imports are grouped into external, stdlib, internal groups in each file (see any go file in this repo for an example)
-* Test are defined in `<package>_test` packages to ensure only the public interface is tested
-* If you export something, make sure you add appropriate godoc comments
+* Imports are grouped into external, stdlib, internal groups in each file (see any go file in this repo for an example) - really just use `goimports` and be done with it.
+* Test are defined in `<package>_test` packages to ensure only the public interface is tested.
+* If you export something, make sure you add appropriate godoc comments and tests.
 
 ## Tagging a Release
 
 * Set the `Version` in _version.go_
 * Update CHANGELOG.md with the relevant changes
 * `make release` - will commit everything, create a tag and push
-
-[retool]: https://github.com/twitchtv/retool
