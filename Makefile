@@ -1,29 +1,57 @@
 .PHONY: bench release setup test
 
+TEST_PKGS = ./ ./utils
+TOOLPATH = $(abspath bin)
 VERSION = $(shell cat version.go | sed -n 's/.*const Version = "\(.*\)"/\1/p')
 
-setup:
-	$(info Synching dev tools and dependencies...)
-	@if test -z $(which retool); then go get github.com/twitchtv/retool; fi
-	@retool sync
-	@retool do dep ensure
+BOLD = \033[1m
+CLEAR = \033[0m
+CYAN = \033[36m
 
-fixtures/fileset.pb: fixtures/*.proto
-	$(info Generating fixtures...)
-	@cd fixtures && go generate
+help: ## Display this help
+	@awk '\
+		BEGIN {FS = ":.*##"; printf "Usage: make $(CYAN)<target>$(CLEAR)\n"} \
+		/^[a-z0-9]+([\/]%)?([\/](%-)?[a-z\-0-9%]+)*:.*? ##/ { printf "  $(CYAN)%-15s$(CLEAR) %s\n", $$1, $$2 } \
+		/^##@/ { printf "\n$(BOLD)%s$(CLEAR)\n", substr($$0, 5) }' \
+		$(MAKEFILE_LIST)
 
-bench:
+##@ Test
+
+test: fixtures/fileset.pb ## Run unit tests
+	@go test -race -cover $(TEST_PKGS)
+
+test/bench: ## Run benchmark tests
 	go test -bench=.
 
-test: fixtures/fileset.pb
-	@go test -race -cover ./ ./utils
+test/ci: $(TOOLPATH)/goverage fixtures/fileset.pb test/bench ## Run CI tests include benchmarks with coverage
+	@bin/goverage -race -coverprofile=coverage.txt -covermode=atomic $(TEST_PKGS)
 
-test-ci: fixtures/fileset.pb bench
-	@retool do goverage -race -coverprofile=coverage.txt -covermode=atomic ./ ./utils
+##@ Release
 
-release:
+release: ## Release a new version
 	@echo Releasing v${VERSION}...
 	git add CHANGELOG.md version.go
 	git commit -m "Bump version to v${VERSION}"
 	git tag -m "Version ${VERSION}" "v${VERSION}"
 	git push && git push --tags
+
+################################################################################
+# Indirect targets
+################################################################################
+$(TOOLPATH)/goverage:
+	@echo "$(CYAN)Installing goverage...$(CLEAR)"
+	@TOOLPKG=github.com/haya14busa/goverage make build-tool
+
+.PHONY: build-tool
+build-tool:
+	@{ \
+	TMP_DIR=$$(mktemp -d); \
+	cd $$TMP_DIR; \
+	go mod init tmp; \
+	GOBIN=$(TOOLPATH) go get $(TOOLPKG); \
+	rm -rf $$TMP_DIR; \
+	}
+
+fixtures/fileset.pb: fixtures/*.proto
+	$(info Generating fixtures...)
+	@cd fixtures && go generate
