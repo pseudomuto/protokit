@@ -1,9 +1,16 @@
 package utils
 
 import (
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
+	plugin_go "github.com/golang/protobuf/protoc-gen-go/plugin"
+
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
+
+	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/dynamicpb"
 
 	"errors"
 	"io/ioutil"
@@ -12,8 +19,9 @@ import (
 
 // CreateGenRequest creates a codegen request from a `FileDescriptorSet`
 func CreateGenRequest(fds *descriptor.FileDescriptorSet, filesToGen ...string) *plugin_go.CodeGeneratorRequest {
+	files := RegisterExtensions(fds)
 	req := new(plugin_go.CodeGeneratorRequest)
-	req.ProtoFile = fds.GetFile()
+	req.ProtoFile = files
 
 	for _, f := range req.GetProtoFile() {
 		if InStringSlice(filesToGen, f.GetName()) {
@@ -86,4 +94,47 @@ func LoadDescriptor(name string, pathSegments ...string) (*descriptor.FileDescri
 	}
 
 	return nil, errors.New("FileDescriptor not found")
+}
+
+func RegisterExtensions(fds *descriptor.FileDescriptorSet) []*descriptorpb.FileDescriptorProto{
+	extTypes := new(protoregistry.Types)
+
+	files,err := protodesc.NewFiles(fds)
+	if err != nil {
+		panic(err)
+	}
+
+	files.RangeFiles(func(fileDescriptor protoreflect.FileDescriptor) bool {
+		registerAllExtensions(extTypes, fileDescriptor)
+		return true
+	} )
+
+	new_files := make([]*descriptorpb.FileDescriptorProto,0)
+	for _,fd := range fds.GetFile() {
+		b, _ := proto.Marshal(fd)
+		err := proto.UnmarshalOptions{Resolver: extTypes}.Unmarshal(b, fd)
+		if err != nil {
+			panic(err)
+		}
+		new_files = append(new_files,fd)
+	} 
+
+	return new_files
+}
+
+func registerAllExtensions(extTypes *protoregistry.Types, descs interface {
+	Messages() protoreflect.MessageDescriptors
+	Extensions() protoreflect.ExtensionDescriptors
+}) error {
+	mds := descs.Messages()
+	for i := 0; i < mds.Len(); i++ {
+		registerAllExtensions(extTypes, mds.Get(i))
+	}
+	xds := descs.Extensions()
+	for i := 0; i < xds.Len(); i++ {
+		if err := extTypes.RegisterExtension(dynamicpb.NewExtensionType(xds.Get(i))); err != nil {
+			return err
+		}
+	}
+	return nil
 }
