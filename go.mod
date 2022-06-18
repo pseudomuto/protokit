@@ -1,4 +1,4 @@
-module github.com/sharonliao/protokit
+module github.com/pseudomuto/protokit
 
 go 1.17
 
