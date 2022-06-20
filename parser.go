@@ -233,9 +233,6 @@ func parseMessageFields(ctx context.Context, protos []*descriptor.FieldDescripto
 			Comments:             file.comments.Get(fmt.Sprintf("%s.%d.%d", message.path, messageFieldCommentPath, i)),
 			Message:              message,
 		}
-		if fd.Options != nil {
-			fields[i].setOptions(fd.Options)
-		}
 	}
 
 	return fields
