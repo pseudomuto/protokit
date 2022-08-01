@@ -3,6 +3,8 @@ package protokit
 import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/pseudomuto/protokit/utils"
+	"google.golang.org/protobuf/types/descriptorpb"
 
 	"fmt"
 	"io"
@@ -45,6 +47,14 @@ func readRequest(r io.Reader) (*plugin_go.CodeGeneratorRequest, error) {
 	if err = proto.Unmarshal(data, req); err != nil {
 		return nil, err
 	}
+
+	// Register all custom extensions,then marsh and unmarsh FileDescriptorProtos with the types registered before,
+	// This operation will decode custom options from unknown fields to proper options sections.
+	set := new(descriptorpb.FileDescriptorSet)
+	set.File = req.ProtoFile
+
+	fd := utils.RegisterExtensions(set)
+	req.ProtoFile = fd
 
 	if len(req.GetFileToGenerate()) == 0 {
 		return nil, fmt.Errorf("no files were supplied to the generator")
