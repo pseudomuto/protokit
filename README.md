@@ -15,8 +15,8 @@ See the [examples](examples/) directory for uh...examples.
 package main
 
 import (
-    "github.com/golang/protobuf/proto"
-    "github.com/golang/protobuf/protoc-gen-go/plugin"
+    "google.golang.org/protobuf/proto"
+    plugin_go "google.golang.org/protobuf/types/pluginpb"
     "github.com/pseudomuto/protokit"
     _ "google.golang.org/genproto/googleapis/api/annotations" // Support (google.api.http) option (from google/api/annotations.proto).
 

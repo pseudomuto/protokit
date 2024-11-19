@@ -1,12 +1,12 @@
 package protokit
 
 import (
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
-
 	"context"
 	"fmt"
 	"strings"
+
+	descriptor "google.golang.org/protobuf/types/descriptorpb"
+	plugin_go "google.golang.org/protobuf/types/pluginpb"
 )
 
 const (
@@ -36,7 +36,7 @@ const (
 //
 // For example, given the following invocation, only booking.proto will be returned even if it imports other protos:
 //
-//     protoc --plugin=protoc-gen-test=./test -I. protos/booking.proto
+//	protoc --plugin=protoc-gen-test=./test -I. protos/booking.proto
 func ParseCodeGenRequest(req *plugin_go.CodeGeneratorRequest) []*FileDescriptor {
 	allFiles := make(map[string]*FileDescriptor)
 	genFiles := make([]*FileDescriptor, len(req.GetFileToGenerate()))
@@ -117,10 +117,10 @@ func parseEnumValues(ctx context.Context, protos []*descriptor.EnumValueDescript
 		longName := fmt.Sprintf("%s.%s", enum.GetLongName(), vd.GetName())
 
 		values[i] = &EnumValueDescriptor{
-			common: newCommon(file, "", longName),
+			common:                   newCommon(file, "", longName),
 			EnumValueDescriptorProto: vd,
-			Enum:     enum,
-			Comments: file.comments.Get(fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)),
+			Enum:                     enum,
+			Comments:                 file.comments.Get(fmt.Sprintf("%s.%d.%d", enum.path, enumValueCommentPath, i)),
 		}
 		if vd.Options != nil {
 			values[i].setOptions(vd.Options)

@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
-
 	"errors"
 	"io/ioutil"
 	"path/filepath"
+
+	"google.golang.org/protobuf/proto"
+	descriptor "google.golang.org/protobuf/types/descriptorpb"
+	plugin_go "google.golang.org/protobuf/types/pluginpb"
 )
 
 // CreateGenRequest creates a codegen request from a `FileDescriptorSet`
@@ -46,7 +46,8 @@ OUTERLOOP:
 // `--descriptor_set_out` flag with `protoc`.
 //
 // Example:
-//     protoc --descriptor_set_out=fileset.pb --include_imports --include_source_info ./booking.proto ./todo.proto
+//
+//	protoc --descriptor_set_out=fileset.pb --include_imports --include_source_info ./booking.proto ./todo.proto
 func LoadDescriptorSet(pathSegments ...string) (*descriptor.FileDescriptorSet, error) {
 	f, err := ioutil.ReadFile(filepath.Join(pathSegments...))
 	if err != nil {
