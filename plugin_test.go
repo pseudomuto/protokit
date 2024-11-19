@@ -1,13 +1,13 @@
 package protokit_test
 
 import (
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/stretchr/testify/suite"
-
 	"bytes"
 	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
+	"google.golang.org/protobuf/proto"
+	plugin_go "google.golang.org/protobuf/types/pluginpb"
 
 	"github.com/pseudomuto/protokit"
 	"github.com/pseudomuto/protokit/utils"
@@ -41,7 +41,7 @@ func (assert *PluginTest) TestRunPluginInputError() {
 	out := new(bytes.Buffer)
 
 	err := protokit.RunPluginWithIO(nil, in, out)
-	assert.EqualError(err, "proto: can't skip unknown wire type 6 for plugin_go.CodeGeneratorRequest")
+	assert.ErrorContains(err, "cannot parse invalid wire-format data")
 	assert.Empty(out)
 }
 

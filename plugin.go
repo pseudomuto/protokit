@@ -1,13 +1,12 @@
 package protokit
 
 import (
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
-
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
+
+	"google.golang.org/protobuf/proto"
+	plugin_go "google.golang.org/protobuf/types/pluginpb"
 )
 
 // Plugin describes an interface for running protoc code generator plugins
@@ -36,7 +35,7 @@ func RunPluginWithIO(p Plugin, r io.Reader, w io.Writer) error {
 }
 
 func readRequest(r io.Reader) (*plugin_go.CodeGeneratorRequest, error) {
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}

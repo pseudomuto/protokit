@@ -1,11 +1,13 @@
 package protokit
 
 import (
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-
 	"fmt"
 	"strings"
+
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
+	descriptor "google.golang.org/protobuf/types/descriptorpb"
 )
 
 type common struct {
@@ -47,19 +49,23 @@ func (c *common) GetFullName() string { return c.FullName }
 func (c *common) IsProto3() bool { return c.file.GetSyntax() == "proto3" }
 
 func getOptions(options proto.Message) (m map[string]interface{}) {
-	for _, extension := range proto.RegisteredExtensions(options) {
-		if !proto.HasExtension(options, extension) {
-			continue
-		}
-		ext, err := proto.GetExtension(options, extension)
-		if err != nil {
-			continue
-		}
-		if m == nil {
-			m = make(map[string]interface{})
-		}
-		m[extension.Name] = ext
-	}
+	protoregistry.GlobalTypes.RangeExtensionsByMessage(
+		proto.MessageName(options),
+		func(extensionType protoreflect.ExtensionType) bool {
+			if !proto.HasExtension(options, extensionType) {
+				return true
+			}
+
+			ext := proto.GetExtension(options, extensionType)
+			if m == nil {
+				m = make(map[string]interface{})
+			}
+			m[string(extensionType.TypeDescriptor().FullName())] = ext
+
+			return true
+		},
+	)
+
 	return m
 }
 

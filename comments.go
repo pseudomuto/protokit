@@ -1,11 +1,11 @@
 package protokit
 
 import (
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-
 	"bytes"
 	"strconv"
 	"strings"
+
+	descriptor "google.golang.org/protobuf/types/descriptorpb"
 )
 
 // A Comment describes the leading, trailing, and detached comments for a proto object. See `SourceCodeInfo_Location` in

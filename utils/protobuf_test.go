@@ -66,7 +66,7 @@ func (assert *UtilsTest) TestLoadDescriptorSetFileNotFound() {
 func (assert *UtilsTest) TestLoadDescriptorSetMarshalError() {
 	set, err := utils.LoadDescriptorSet("..", "fixtures", "todo.proto")
 	assert.Nil(set)
-	assert.EqualError(err, "proto: can't skip unknown wire type 7 for descriptor.FileDescriptorSet")
+	assert.ErrorContains(err, "cannot parse invalid wire-format data")
 }
 
 func (assert *UtilsTest) TestLoadDescriptor() {
@@ -84,7 +84,7 @@ func (assert *UtilsTest) TestLoadDescriptorFileNotFound() {
 func (assert *UtilsTest) TestLoadDescriptorMarshalError() {
 	proto, err := utils.LoadDescriptor("todo.proto", "..", "fixtures", "todo.proto")
 	assert.Nil(proto)
-	assert.EqualError(err, "proto: can't skip unknown wire type 7 for descriptor.FileDescriptorSet")
+	assert.ErrorContains(err, "cannot parse invalid wire-format data")
 }
 
 func (assert *UtilsTest) TestLoadDescriptorDescriptorNotFound() {
