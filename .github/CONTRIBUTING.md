@@ -10,7 +10,7 @@ It's always good to start simple. Clone the repo and `make test` to make sure yo
 
 Here are some general guidelines for making PRs for this repo.
 
-1. [Fork this repo](https://github.com/pseudomuto/protokit/fork)
+1. [Fork this repo](https://github.com/Djarvur/protokit/fork)
 1. Make a branch off of master (`git checkout -b <your_branch_name>`)
 1. Make focused commits with descriptive messages
 1. Add tests that fail without your code, and pass with it (`make test` is your friend)

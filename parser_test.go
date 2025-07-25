@@ -8,8 +8,8 @@ import (
 	"google.golang.org/protobuf/runtime/protoimpl"
 	descriptor "google.golang.org/protobuf/types/descriptorpb"
 
-	"github.com/pseudomuto/protokit"
-	"github.com/pseudomuto/protokit/utils"
+	"github.com/Djarvur/protokit"
+	"github.com/Djarvur/protokit/utils"
 )
 
 var (

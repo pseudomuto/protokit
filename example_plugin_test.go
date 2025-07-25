@@ -6,7 +6,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	plugin_go "google.golang.org/protobuf/types/pluginpb"
 
-	"github.com/pseudomuto/protokit"
+	"github.com/Djarvur/protokit"
 )
 
 type plugin struct{}

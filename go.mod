@@ -1,4 +1,4 @@
-module github.com/pseudomuto/protokit
+module github.com/Djarvur/protokit
 
 go 1.22.5
 

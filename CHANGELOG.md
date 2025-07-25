@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/pseudomuto/protokit/compare/v0.2.0...master)
 
+## [0.3.0](https://github.com/pseudomuto/protokit/compare/v0.1.0...v0.2.0)
+
+### Changed
+
+* Due to a prolonged period of inactivity in the mainstream, this project is no longer a fork: we have appropriated it. The module name has been changed to `github.com/Djarvur/protokit`, so all imports must be changed.
+
 ## [0.2.0](https://github.com/pseudomuto/protokit/compare/v0.1.0...v0.2.0)
 
 ### Added

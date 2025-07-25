@@ -4,10 +4,10 @@
 // There are two main things this library provides; a parser for parsing protobuf files into some well-defined structs,
 // and an abstraction to make it simple to write your own protoc plugins.
 //
-// Getting Started
+// # Getting Started
 //
-// For a quick view of how to get started, see https://godoc.org/github.com/pseudomuto/protokit#example-RunPlugin
+// For a quick view of how to get started, see https://godoc.org/github.com/Djarvur/protokit#example-RunPlugin
 //
 // If you want see/try a working example, check out the examples in
-// https://github.com/pseudomuto/protokit/tree/master/examples.
+// https://github.com/Djarvur/protokit/tree/master/examples.
 package protokit

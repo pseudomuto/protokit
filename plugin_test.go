@@ -9,8 +9,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	plugin_go "google.golang.org/protobuf/types/pluginpb"
 
-	"github.com/pseudomuto/protokit"
-	"github.com/pseudomuto/protokit/utils"
+	"github.com/Djarvur/protokit"
+	"github.com/Djarvur/protokit/utils"
 )
 
 type PluginTest struct {
