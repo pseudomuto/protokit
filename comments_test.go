@@ -1,32 +1,22 @@
 package protokit_test
 
 import (
-	"github.com/stretchr/testify/suite"
-
 	"fmt"
 	"testing"
 
 	"github.com/pseudomuto/protokit"
 	"github.com/pseudomuto/protokit/utils"
+	"github.com/stretchr/testify/require"
 )
 
-type CommentsTest struct {
-	suite.Suite
-	comments protokit.Comments
-}
-
 func TestComments(t *testing.T) {
-	suite.Run(t, new(CommentsTest))
-}
+	t.Parallel()
 
-func (assert *CommentsTest) SetupSuite() {
 	pf, err := utils.LoadDescriptor("todo.proto", "fixtures", "fileset.pb")
-	assert.NoError(err)
+	require.NoError(t, err)
 
-	assert.comments = protokit.ParseComments(pf)
-}
+	comments := protokit.ParseComments(pf)
 
-func (assert *CommentsTest) TestComments() {
 	tests := []struct {
 		key      string
 		leading  string
@@ -37,13 +27,13 @@ func (assert *CommentsTest) TestComments() {
 	}
 
 	for _, test := range tests {
-		assert.Equal(test.leading, assert.comments[test.key].GetLeading())
-		assert.Equal(test.trailing, assert.comments[test.key].GetTrailing())
-		assert.Len(assert.comments[test.key].GetDetached(), 0)
+		require.Equal(t, test.leading, comments[test.key].GetLeading())
+		require.Equal(t, test.trailing, comments[test.key].GetTrailing())
+		require.Empty(t, comments[test.key].GetDetached())
 	}
 
-	assert.NotNil(assert.comments.Get("WONTBETHERE"))
-	assert.Equal("", assert.comments.Get("WONTBETHERE").String())
+	require.NotNil(t, comments.Get("WONTBETHERE"))
+	require.Empty(t, comments.Get("WONTBETHERE").String())
 }
 
 // Join the leading and trailing comments together

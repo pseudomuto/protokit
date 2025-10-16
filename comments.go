@@ -1,11 +1,11 @@
 package protokit
 
 import (
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-
 	"bytes"
 	"strconv"
 	"strings"
+
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // A Comment describes the leading, trailing, and detached comments for a proto object. See `SourceCodeInfo_Location` in
@@ -30,7 +30,7 @@ func (c *Comment) String() string {
 	return strings.TrimSpace(b.String())
 }
 
-func newComment(loc *descriptor.SourceCodeInfo_Location) *Comment {
+func newComment(loc *descriptorpb.SourceCodeInfo_Location) *Comment {
 	detached := make([]string, len(loc.GetLeadingDetachedComments()))
 	for i, c := range loc.GetLeadingDetachedComments() {
 		detached[i] = scrub(c)
@@ -59,7 +59,7 @@ type Comments map[string]*Comment
 // with a "." character. E.g. `4.2.3.0`.
 //
 // Leading/trailing spaces are trimmed for each comment type (leading, trailing, detached)
-func ParseComments(fd *descriptor.FileDescriptorProto) Comments {
+func ParseComments(fd *descriptorpb.FileDescriptorProto) Comments {
 	comments := make(Comments)
 
 	for _, loc := range fd.GetSourceCodeInfo().GetLocation() {
@@ -89,5 +89,5 @@ func (c Comments) Get(path string) *Comment {
 }
 
 func scrub(str string) string {
-	return strings.TrimSpace(strings.Replace(str, "\n ", "\n", -1))
+	return strings.TrimSpace(strings.ReplaceAll(str, "\n ", "\n"))
 }

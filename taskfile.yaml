@@ -1,0 +1,83 @@
+version: "3"
+
+tasks:
+  update:
+    desc: Updates all dependencies
+    aliases: [up]
+    silent: true
+    cmds:
+      - go mod tidy
+
+  build:
+    desc: Build a local snapshot with goreleaser
+    silent: true
+    cmds:
+      - "goreleaser release --snapshot --clean --skip=publish"
+
+  generate:
+    aliases: [gen]
+    silent: true
+    cmd: go generate ./...
+
+  lint:
+    desc: Run golangci-lint on the codebase
+    silent: true
+    cmd: "golangci-lint run {{.CLI_ARGS}}"
+
+  lint:fix:
+    desc: Run golangci-lint --fix on the codebase
+    silent: true
+    cmds:
+      - go tool modernize -fix -test ./...
+      - golangci-lint run --fix
+
+  test:
+    desc: Run the test suite (unit tests only)
+    silent: true
+    cmd: go test ./... -cover -short
+
+  test:ci:
+    desc: Run the test suite for CI with coverage profile
+    silent: true
+    cmd: go test -v -coverprofile=coverage.out ./...
+
+  tag:
+    desc: Create and push a new signed tag for release
+    prompt: This will create, sign, and push tag {{.TAG}}. Continue?
+    requires:
+      vars: [TAG]
+    preconditions:
+      - sh: git diff --quiet
+        msg: "Working directory must be clean"
+      - sh: git diff --cached --quiet
+        msg: "No staged changes allowed"
+      - sh: '[[ "{{.TAG}}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]'
+        msg: "TAG must be in format vX.Y.Z (e.g., v1.0.0)"
+    cmds:
+      - git tag -s {{.TAG}} -m "Release {{.TAG}}"
+      - git push origin {{.TAG}}
+      - echo "Signed tag {{.TAG}} created and pushed. GitHub Actions will now build and release."
+
+  tag:patch:
+    desc: Create and push a patch version tag (v0.0.X)
+    cmds:
+      - task: tag
+        vars:
+          TAG:
+            sh: git describe --tags --abbrev=0 2>/dev/null | awk -F. '{print $1"."$2"."$3+1}' || echo "v0.0.1"
+
+  tag:minor:
+    desc: Create and push a minor version tag (v0.X.0)
+    cmds:
+      - task: tag
+        vars:
+          TAG:
+            sh: git describe --tags --abbrev=0 2>/dev/null | awk -F. '{print $1"."$2+1".0"}' || echo "v0.1.0"
+
+  tag:major:
+    desc: Create and push a major version tag (vX.0.0)
+    cmds:
+      - task: tag
+        vars:
+          TAG:
+            sh: git describe --tags --abbrev=0 2>/dev/null | awk -F. '{print $1+1".0.0"}' | sed 's/^v/v/' || echo "v1.0.0"

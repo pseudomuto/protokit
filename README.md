@@ -15,8 +15,8 @@ See the [examples](examples/) directory for uh...examples.
 package main
 
 import (
-    "github.com/golang/protobuf/proto"
-    "github.com/golang/protobuf/protoc-gen-go/plugin"
+    "google.golang.org/protobuf/proto"
+    "google.golang.org/protobuf/types/pluginpb"
     "github.com/pseudomuto/protokit"
     _ "google.golang.org/genproto/googleapis/api/annotations" // Support (google.api.http) option (from google/api/annotations.proto).
 
@@ -33,17 +33,17 @@ func main() {
 // plugin is an implementation of protokit.Plugin
 type plugin struct{}
 
-func (p *plugin) Generate(in *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
+func (p *plugin) Generate(in *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error) {
     descriptors := protokit.ParseCodeGenRequest(req)
 
-    resp := new(plugin_go.CodeGeneratorResponse)
+    resp := new(pluginpb.CodeGeneratorResponse)
 
     for _, d := range descriptors {
         // TODO: YOUR WORK HERE
         fileName := // generate a file name based on d.GetName()
         content := // generate content for the output file
 
-        resp.File = append(resp.File, &plugin_go.CodeGeneratorResponse_File{
+        resp.File = append(resp.File, &pluginpb.CodeGeneratorResponse_File{
             Name:    proto.String(fileName),
             Content: proto.String(content),
         })

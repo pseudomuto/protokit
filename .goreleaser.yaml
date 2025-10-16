@@ -1,17 +1,65 @@
+version: 2
+
+# Project metadata
 project_name: protokit
 
-before:
-  hooks:
-    - go mod tidy
-
+# Build configuration
 builds:
   - skip: true
 
+# Archive configuration
+archives:
+  - id: default
+    ids:
+      - protokit
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+# Checksum configuration
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 
+# Snapshot configuration
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 
+# Changelog configuration
 changelog:
   sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^build:"
+      - "^chore:"
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: Bug Fixes
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: Others
+      order: 999
+
+# Release configuration
+release:
+  github:
+    owner: pseudomuto
+    name: protokit
+  draft: false
+  prerelease: auto
+  name_template: "Release {{ .Version }}"
+  header: |
+    ## Protokit - A starter kit for building protoc-plugins.
+
+    ### Get it!
+
+    `go get github.com/pseudomuto/protokit`
+
+  footer: |
+    **Full Changelog**: https://github.com/pseudomuto/protokit/compare/{{ .PreviousTag }}...{{ .Tag }}

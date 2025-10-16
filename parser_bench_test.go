@@ -11,7 +11,7 @@ func BenchmarkParseCodeGenRequest(b *testing.B) {
 	fds, _ := utils.LoadDescriptorSet("fixtures", "fileset.pb")
 	req := utils.CreateGenRequest(fds, "booking.proto", "todo.proto")
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		protokit.ParseCodeGenRequest(req)
 	}
 }

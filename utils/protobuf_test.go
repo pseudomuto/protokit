@@ -1,27 +1,21 @@
 package utils_test
 
 import (
-	"github.com/stretchr/testify/suite"
-
+	"slices"
 	"testing"
 
 	"github.com/pseudomuto/protokit/utils"
+	"github.com/stretchr/testify/require"
 )
 
-type UtilsTest struct {
-	suite.Suite
-}
+func TestCreateGenRequest(t *testing.T) {
+	t.Parallel()
 
-func TestUtils(t *testing.T) {
-	suite.Run(t, new(UtilsTest))
-}
-
-func (assert *UtilsTest) TestCreateGenRequest() {
 	fds, err := utils.LoadDescriptorSet("..", "fixtures", "fileset.pb")
-	assert.NoError(err)
+	require.NoError(t, err)
 
 	req := utils.CreateGenRequest(fds, "booking.proto", "todo.proto")
-	assert.Equal([]string{"booking.proto", "todo.proto"}, req.GetFileToGenerate())
+	require.Equal(t, []string{"booking.proto", "todo.proto"}, req.GetFileToGenerate())
 
 	expectedProtos := []string{
 		"booking.proto",
@@ -34,61 +28,79 @@ func (assert *UtilsTest) TestCreateGenRequest() {
 	}
 
 	for _, pf := range req.GetProtoFile() {
-		assert.True(utils.InStringSlice(expectedProtos, pf.GetName()))
+		require.True(t, slices.Contains(expectedProtos, pf.GetName()))
 	}
 }
 
-func (assert *UtilsTest) TestFilesToGenerate() {
+func TestFilesToGenerate(t *testing.T) {
+	t.Parallel()
+
 	fds, err := utils.LoadDescriptorSet("..", "fixtures", "fileset.pb")
-	assert.NoError(err)
+	require.NoError(t, err)
 
 	req := utils.CreateGenRequest(fds, "booking.proto")
 	protos := utils.FilesToGenerate(req)
-	assert.Len(protos, 1)
-	assert.Equal("booking.proto", protos[0].GetName())
+	require.Len(t, protos, 1)
+	require.Equal(t, "booking.proto", protos[0].GetName())
 }
 
-func (assert *UtilsTest) TestLoadDescriptorSet() {
+func TestLoadDescriptorSet(t *testing.T) {
+	t.Parallel()
+
 	set, err := utils.LoadDescriptorSet("..", "fixtures", "fileset.pb")
-	assert.NoError(err)
-	assert.Len(set.GetFile(), 7)
+	require.NoError(t, err)
+	require.Len(t, set.GetFile(), 7)
 
-	assert.NotNil(utils.FindDescriptor(set, "todo.proto"))
-	assert.Nil(utils.FindDescriptor(set, "whodis.proto"))
+	require.NotNil(t, utils.FindDescriptor(set, "todo.proto"))
+	require.Nil(t, utils.FindDescriptor(set, "whodis.proto"))
 }
 
-func (assert *UtilsTest) TestLoadDescriptorSetFileNotFound() {
+func TestLoadDescriptorSetFileNotFound(t *testing.T) {
+	t.Parallel()
+
 	set, err := utils.LoadDescriptorSet("..", "fixtures", "notgonnadoit.pb")
-	assert.Nil(set)
-	assert.EqualError(err, "open ../fixtures/notgonnadoit.pb: no such file or directory")
+	require.Nil(t, set)
+	require.EqualError(t, err, "open ../fixtures/notgonnadoit.pb: no such file or directory")
 }
 
-func (assert *UtilsTest) TestLoadDescriptorSetMarshalError() {
+func TestLoadDescriptorSetMarshalError(t *testing.T) {
+	t.Parallel()
+
 	set, err := utils.LoadDescriptorSet("..", "fixtures", "todo.proto")
-	assert.Nil(set)
-	assert.EqualError(err, "proto: can't skip unknown wire type 7 for descriptor.FileDescriptorSet")
+	require.Nil(t, set)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "proto:")
 }
 
-func (assert *UtilsTest) TestLoadDescriptor() {
+func TestLoadDescriptor(t *testing.T) {
+	t.Parallel()
+
 	proto, err := utils.LoadDescriptor("todo.proto", "..", "fixtures", "fileset.pb")
-	assert.NotNil(proto)
-	assert.NoError(err)
+	require.NotNil(t, proto)
+	require.NoError(t, err)
 }
 
-func (assert *UtilsTest) TestLoadDescriptorFileNotFound() {
+func TestLoadDescriptorFileNotFound(t *testing.T) {
+	t.Parallel()
+
 	proto, err := utils.LoadDescriptor("todo.proto", "..", "fixtures", "notgonnadoit.pb")
-	assert.Nil(proto)
-	assert.EqualError(err, "open ../fixtures/notgonnadoit.pb: no such file or directory")
+	require.Nil(t, proto)
+	require.EqualError(t, err, "open ../fixtures/notgonnadoit.pb: no such file or directory")
 }
 
-func (assert *UtilsTest) TestLoadDescriptorMarshalError() {
+func TestLoadDescriptorMarshalError(t *testing.T) {
+	t.Parallel()
+
 	proto, err := utils.LoadDescriptor("todo.proto", "..", "fixtures", "todo.proto")
-	assert.Nil(proto)
-	assert.EqualError(err, "proto: can't skip unknown wire type 7 for descriptor.FileDescriptorSet")
+	require.Nil(t, proto)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "proto:")
 }
 
-func (assert *UtilsTest) TestLoadDescriptorDescriptorNotFound() {
+func TestLoadDescriptorDescriptorNotFound(t *testing.T) {
+	t.Parallel()
+
 	proto, err := utils.LoadDescriptor("nothere.proto", "..", "fixtures", "fileset.pb")
-	assert.Nil(proto)
-	assert.EqualError(err, "FileDescriptor not found")
+	require.Nil(t, proto)
+	require.EqualError(t, err, "FileDescriptor not found")
 }

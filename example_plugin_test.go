@@ -1,21 +1,21 @@
 package protokit_test
 
 import (
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/pseudomuto/protokit"
-
 	"log"
+
+	"github.com/pseudomuto/protokit"
+	"google.golang.org/protobuf/proto"
+	pluginpb "google.golang.org/protobuf/types/pluginpb"
 )
 
 type plugin struct{}
 
-func (p *plugin) Generate(r *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
+func (p *plugin) Generate(r *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error) {
 	descriptors := protokit.ParseCodeGenRequest(r)
-	resp := new(plugin_go.CodeGeneratorResponse)
+	resp := new(pluginpb.CodeGeneratorResponse)
 
 	for _, desc := range descriptors {
-		resp.File = append(resp.File, &plugin_go.CodeGeneratorResponse_File{
+		resp.File = append(resp.File, &pluginpb.CodeGeneratorResponse_File{
 			Name:    proto.String(desc.GetName() + ".out"),
 			Content: proto.String("Some relevant output"),
 		})
