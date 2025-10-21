@@ -1,0 +1,57 @@
+// Top-level comments are attached to the edition directive.
+edition = "2023";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "extend.proto";
+option go_package = "edition2023";
+
+// The official documentation for the Edition 2023 test.
+//
+// This file demonstrates edition 2023 syntax and features,
+// including explicit field presence by default.
+package com.pseudomuto.protokit.edition2023;
+
+option (com.pseudomuto.protokit.v1.extend_file) = true;
+
+// A service for testing edition 2023 features.
+service Edition2023Service {
+  option (com.pseudomuto.protokit.v1.extend_service) = true;
+
+  // Test method for edition 2023
+  rpc TestMethod(TestRequest) returns (TestResponse) {
+    option (com.pseudomuto.protokit.v1.extend_method) = true;
+  }
+}
+
+// Test enumeration for edition 2023
+enum TestEnum {
+  option (com.pseudomuto.protokit.v1.extend_enum) = true;
+
+  UNKNOWN = 0; // Unknown value
+  VALUE_A = 1 [(com.pseudomuto.protokit.v1.extend_enum_value) = true]; // First value
+  VALUE_B = 2; // Second value
+}
+
+// Test message for edition 2023 with explicit field presence by default
+message TestMessage {
+  option (com.pseudomuto.protokit.v1.extend_message) = true;
+
+  int64 id = 1; // Message ID with explicit presence
+  string name = 2 [(com.pseudomuto.protokit.v1.extend_field) = true]; // Message name
+  TestEnum type = 3; // Message type
+  google.protobuf.Timestamp created_at = 4; // Creation timestamp
+  google.protobuf.Any metadata = 5; // Additional metadata
+}
+
+// Request message for testing
+message TestRequest {
+  string query = 1; // Search query
+  int32 limit = 2; // Result limit
+}
+
+// Response message for testing
+message TestResponse {
+  repeated TestMessage results = 1; // Search results
+  int32 total_count = 2; // Total result count
+}
