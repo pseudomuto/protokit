@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/pseudomuto/protokit"
-	"google.golang.org/genproto/googleapis/api/annotations"
-
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
+
+	"google.golang.org/protobuf/proto"
+	pluginpb "google.golang.org/protobuf/types/pluginpb"
+	"github.com/pseudomuto/protokit"
+	"google.golang.org/genproto/googleapis/api/annotations"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 
 type plugin struct{}
 
-func (p *plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
+func (p *plugin) Generate(req *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error) {
 	descriptors := protokit.ParseCodeGenRequest(req)
 	files := make([]*file, len(descriptors))
 
@@ -36,8 +36,8 @@ func (p *plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		return nil, err
 	}
 
-	resp := new(plugin_go.CodeGeneratorResponse)
-	resp.File = append(resp.File, &plugin_go.CodeGeneratorResponse_File{
+	resp := new(pluginpb.CodeGeneratorResponse)
+	resp.File = append(resp.File, &pluginpb.CodeGeneratorResponse_File{
 		Name:    proto.String("output.json"),
 		Content: proto.String(buf.String()),
 	})
@@ -59,7 +59,7 @@ func newFile(fd *protokit.FileDescriptor) *file {
 
 	return &file{
 		Name:        fmt.Sprintf("%s.%s", fd.GetPackage(), fd.GetName()),
-		Description: fd.GetComments().String(),
+		Description: fd.GetPackageComments().String(),
 		Services:    svcs,
 	}
 }

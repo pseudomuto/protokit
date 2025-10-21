@@ -1,0 +1,103 @@
+version: "2"
+
+run:
+  modules-download-mode: readonly
+
+linters:
+  default: none
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - contextcheck
+    - depguard
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errorlint
+    - exhaustive
+    - funlen
+    - gocheckcompilerdirectives
+    - gochecksumtype
+    - gocognit
+    - gocyclo
+    - gomoddirectives
+    - gomodguard
+    - gosec
+    - gosmopolitan
+    - govet
+    - ineffassign
+    - loggercheck
+    - maintidx
+    - makezero
+    - musttag
+    - nestif
+    - nilerr
+    - nilnesserr
+    - noctx
+    - perfsprint
+    - prealloc
+    - reassign
+    - recvcheck
+    - rowserrcheck
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - testifylint
+    - unparam
+    - unused
+    - zerologlint
+
+  settings:
+    depguard:
+      rules:
+        main:
+          list-mode: lax
+          deny:
+            - pkg: reflect
+    funlen:
+      ignore-comments: true
+      lines: 100
+      statements: 60
+
+    gocognit:
+      min-complexity: 50
+
+    testifylint:
+      disable:
+        - go-require
+
+  exclusions:
+    generated: lax
+    paths:
+      - "examples/(.+).go$"
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gomoddirectives
+        path: go.mod
+      - linters:
+          - funlen
+        path: (.+)main.go
+      - linters:
+          - tagalign
+        path: (.+).go
+      - linters:
+          - funlen
+        path: (.+)_test.go
+      - linters:
+          - errcheck
+          - gocognit
+        path: examples/(.+).go
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports

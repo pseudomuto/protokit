@@ -1,18 +1,17 @@
 package protokit
 
 import (
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/plugin"
-
-	"fmt"
+	"errors"
 	"io"
-	"io/ioutil"
 	"os"
+
+	"google.golang.org/protobuf/proto"
+	pluginpb "google.golang.org/protobuf/types/pluginpb"
 )
 
 // Plugin describes an interface for running protoc code generator plugins
 type Plugin interface {
-	Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error)
+	Generate(req *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error)
 }
 
 // RunPlugin runs the supplied plugin by reading input from stdin and generating output to stdout.
@@ -35,25 +34,25 @@ func RunPluginWithIO(p Plugin, r io.Reader, w io.Writer) error {
 	return writeResponse(w, resp)
 }
 
-func readRequest(r io.Reader) (*plugin_go.CodeGeneratorRequest, error) {
-	data, err := ioutil.ReadAll(r)
+func readRequest(r io.Reader) (*pluginpb.CodeGeneratorRequest, error) {
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
 
-	req := new(plugin_go.CodeGeneratorRequest)
+	req := new(pluginpb.CodeGeneratorRequest)
 	if err = proto.Unmarshal(data, req); err != nil {
 		return nil, err
 	}
 
 	if len(req.GetFileToGenerate()) == 0 {
-		return nil, fmt.Errorf("no files were supplied to the generator")
+		return nil, errors.New("no files were supplied to the generator")
 	}
 
 	return req, nil
 }
 
-func writeResponse(w io.Writer, resp *plugin_go.CodeGeneratorResponse) error {
+func writeResponse(w io.Writer, resp *pluginpb.CodeGeneratorResponse) error {
 	data, err := proto.Marshal(resp)
 	if err != nil {
 		return err
