@@ -22,13 +22,17 @@ func TestCreateGenRequest(t *testing.T) {
 		"google/protobuf/any.proto",
 		"google/protobuf/descriptor.proto",
 		"google/protobuf/timestamp.proto",
+		"google/protobuf/duration.proto",
 		"extend.proto",
 		"todo.proto",
 		"todo_import.proto",
+		"edition2023.proto",
+		"edition2024.proto",
+		"edition2023_implicit.proto",
 	}
 
 	for _, pf := range req.GetProtoFile() {
-		require.True(t, slices.Contains(expectedProtos, pf.GetName()))
+		require.True(t, slices.Contains(expectedProtos, pf.GetName()), "Unexpected proto file: %s", pf.GetName())
 	}
 }
 
@@ -49,7 +53,7 @@ func TestLoadDescriptorSet(t *testing.T) {
 
 	set, err := utils.LoadDescriptorSet("..", "fixtures", "fileset.pb")
 	require.NoError(t, err)
-	require.Len(t, set.GetFile(), 7)
+	require.Len(t, set.GetFile(), 11)
 
 	require.NotNil(t, utils.FindDescriptor(set, "todo.proto"))
 	require.Nil(t, utils.FindDescriptor(set, "whodis.proto"))

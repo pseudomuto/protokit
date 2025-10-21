@@ -336,3 +336,138 @@ func TestExtendedOptions(t *testing.T) {
 	require.True(t, ok)
 	require.True(t, *extendedValue)
 }
+
+func setupEditionsTest(t *testing.T) (*protokit.FileDescriptor, *protokit.FileDescriptor) {
+	set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
+	require.NoError(t, err)
+
+	req := utils.CreateGenRequest(set, "edition2023.proto", "edition2024.proto")
+	files := protokit.ParseCodeGenRequest(req)
+	edition2023 := files[0]
+	edition2024 := files[1]
+
+	return edition2023, edition2024
+}
+
+func TestEditionsParsing(t *testing.T) {
+	t.Parallel()
+
+	edition2023, edition2024 := setupEditionsTest(t)
+
+	// Test edition 2023
+	require.True(t, edition2023.IsEditions())
+	require.False(t, edition2023.IsProto3())
+	require.Equal(t, "2023", edition2023.GetEditionName())
+	require.Equal(t, "editions", edition2023.GetSyntaxType())
+	require.True(t, edition2023.HasExplicitFieldPresence())
+	require.Equal(t, "Top-level comments are attached to the edition directive.", edition2023.GetSyntaxComments().String())
+	require.Contains(t, edition2023.GetPackageComments().String(), "The official documentation for the Edition 2023 test.")
+
+	// Test edition 2024
+	require.True(t, edition2024.IsEditions())
+	require.False(t, edition2024.IsProto3())
+	require.Equal(t, "2024", edition2024.GetEditionName())
+	require.Equal(t, "editions", edition2024.GetSyntaxType())
+	require.True(t, edition2024.HasExplicitFieldPresence())
+	require.Equal(t, "Top-level comments are attached to the edition directive.", edition2024.GetSyntaxComments().String())
+	require.Contains(t, edition2024.GetPackageComments().String(), "The official documentation for the Edition 2024 test.")
+}
+
+func TestEditionsServices(t *testing.T) {
+	t.Parallel()
+
+	edition2023, edition2024 := setupEditionsTest(t)
+
+	// Test edition 2023 service
+	require.Len(t, edition2023.GetServices(), 1)
+	svc2023 := edition2023.GetService("Edition2023Service")
+	require.NotNil(t, svc2023)
+	require.True(t, svc2023.IsEditions())
+	require.False(t, svc2023.IsProto3())
+	require.Len(t, svc2023.GetMethods(), 1)
+
+	// Test edition 2024 service
+	require.Len(t, edition2024.GetServices(), 1)
+	svc2024 := edition2024.GetService("Edition2024Service")
+	require.NotNil(t, svc2024)
+	require.True(t, svc2024.IsEditions())
+	require.False(t, svc2024.IsProto3())
+	require.Len(t, svc2024.GetMethods(), 2)
+}
+
+func TestEditionsEnums(t *testing.T) {
+	t.Parallel()
+
+	edition2023, edition2024 := setupEditionsTest(t)
+
+	// Test edition 2023 enum
+	require.Len(t, edition2023.GetEnums(), 1)
+	enum2023 := edition2023.GetEnum("TestEnum")
+	require.NotNil(t, enum2023)
+	require.True(t, enum2023.IsEditions())
+	require.False(t, enum2023.IsProto3())
+
+	// Test edition 2024 enum
+	require.Len(t, edition2024.GetEnums(), 1)
+	enum2024 := edition2024.GetEnum("TestEnum")
+	require.NotNil(t, enum2024)
+	require.True(t, enum2024.IsEditions())
+	require.False(t, enum2024.IsProto3())
+}
+
+func TestEditionsMessages(t *testing.T) {
+	t.Parallel()
+
+	edition2023, edition2024 := setupEditionsTest(t)
+
+	// Test edition 2023 messages
+	require.Len(t, edition2023.GetMessages(), 3)
+	msg2023 := edition2023.GetMessage("TestMessage")
+	require.NotNil(t, msg2023)
+	require.True(t, msg2023.IsEditions())
+	require.False(t, msg2023.IsProto3())
+
+	// Test edition 2024 messages
+	require.Len(t, edition2024.GetMessages(), 3)
+	msg2024 := edition2024.GetMessage("TestMessage")
+	require.NotNil(t, msg2024)
+	require.True(t, msg2024.IsEditions())
+	require.False(t, msg2024.IsProto3())
+
+	// Test nested message in edition 2024
+	nested := msg2024.GetMessage("NestedData")
+	require.NotNil(t, nested)
+	require.True(t, nested.IsEditions())
+	require.False(t, nested.IsProto3())
+}
+
+func TestFieldPresenceBehavior(t *testing.T) {
+	t.Parallel()
+
+	set, err := utils.LoadDescriptorSet("fixtures", "fileset.pb")
+	require.NoError(t, err)
+
+	req := utils.CreateGenRequest(set, "todo.proto", "edition2023.proto", "edition2023_implicit.proto")
+	files := protokit.ParseCodeGenRequest(req)
+
+	proto3File := files[0]          // todo.proto (proto3)
+	editionExplicitFile := files[1] // edition2023.proto (explicit field presence)
+	editionImplicitFile := files[2] // edition2023_implicit.proto (implicit field presence)
+
+	// Test proto3 file
+	require.True(t, proto3File.IsProto3())
+	require.False(t, proto3File.HasExplicitFieldPresence())
+	require.Equal(t, "proto3", proto3File.GetSyntax())
+
+	// Test editions file with explicit field presence (default for editions)
+	require.False(t, editionExplicitFile.IsProto3())
+	require.True(t, editionExplicitFile.HasExplicitFieldPresence())
+	require.True(t, editionExplicitFile.IsEditions())
+	require.Equal(t, "editions", editionExplicitFile.GetSyntax())
+
+	// Test editions file with implicit field presence (proto3-like semantics)
+	require.True(t, editionImplicitFile.IsProto3())
+	require.False(t, editionImplicitFile.HasExplicitFieldPresence())
+	require.True(t, editionImplicitFile.IsEditions())
+	require.Equal(t, "editions", editionImplicitFile.GetSyntax())
+}

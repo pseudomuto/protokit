@@ -1,0 +1,71 @@
+// Top-level comments are attached to the edition directive.
+edition = "2024";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "extend.proto";
+option go_package = "edition2024";
+
+// The official documentation for the Edition 2024 test.
+//
+// This file demonstrates edition 2024 syntax and features,
+// including enhanced symbol visibility controls.
+package com.pseudomuto.protokit.edition2024;
+
+option (com.pseudomuto.protokit.v1.extend_file) = true;
+
+// A service for testing edition 2024 features.
+service Edition2024Service {
+  option (com.pseudomuto.protokit.v1.extend_service) = true;
+
+  // Test method for edition 2024
+  rpc TestMethod(TestRequest) returns (TestResponse) {
+    option (com.pseudomuto.protokit.v1.extend_method) = true;
+  }
+
+  // Another test method
+  rpc AnotherMethod(TestRequest) returns (TestResponse);
+}
+
+// Test enumeration for edition 2024
+enum TestEnum {
+  option (com.pseudomuto.protokit.v1.extend_enum) = true;
+
+  UNKNOWN = 0; // Unknown value
+  OPTION_X = 1 [(com.pseudomuto.protokit.v1.extend_enum_value) = true]; // First option
+  OPTION_Y = 2; // Second option
+  OPTION_Z = 3; // Third option
+}
+
+// Test message for edition 2024
+message TestMessage {
+  option (com.pseudomuto.protokit.v1.extend_message) = true;
+
+  int64 id = 1; // Message ID
+  string title = 2 [(com.pseudomuto.protokit.v1.extend_field) = true]; // Message title
+  TestEnum category = 3; // Message category
+  google.protobuf.Duration timeout = 4; // Timeout duration
+  google.protobuf.Any payload = 5; // Message payload
+
+  // Nested message for testing
+  message NestedData {
+    string key = 1; // Data key
+    bytes value = 2; // Data value
+  }
+
+  repeated NestedData data = 6; // Nested data entries
+}
+
+// Request message for testing
+message TestRequest {
+  string filter = 1; // Filter criteria
+  int32 page_size = 2; // Page size
+  string page_token = 3; // Page token for pagination
+}
+
+// Response message for testing
+message TestResponse {
+  repeated TestMessage items = 1; // Response items
+  string next_page_token = 2; // Next page token
+  int64 total_size = 3; // Total items available
+}

@@ -33,6 +33,7 @@ type (
 
 		PackageComments *Comment
 		SyntaxComments  *Comment
+		EditionComments *Comment
 
 		Enums      []*EnumDescriptor
 		Extensions []*ExtensionDescriptor
@@ -105,21 +106,6 @@ type (
 	}
 )
 
-// newCommon creates a new common struct with the given parameters.
-func newCommon(f *FileDescriptor, path, longName string) common {
-	fn := longName
-	if !strings.HasPrefix(fn, ".") {
-		fn = fmt.Sprintf("%s.%s", f.GetPackage(), longName)
-	}
-
-	return common{
-		file:     f,
-		path:     path,
-		LongName: longName,
-		FullName: fn,
-	}
-}
-
 // GetFile returns the FileDescriptor that contains this object
 func (c *common) GetFile() *FileDescriptor { return c.file }
 
@@ -132,8 +118,14 @@ func (c *common) GetLongName() string { return c.LongName }
 // GetFullName returns the `LongName` prefixed with the package this object is in
 func (c *common) GetFullName() string { return c.FullName }
 
-// IsProto3 returns whether or not this is a proto3 object
-func (c *common) IsProto3() bool { return c.file.GetSyntax() == "proto3" }
+// IsProto3 returns whether or not this is a proto3 object or uses proto3-like semantics
+func (c *common) IsProto3() bool { return c.file.IsProto3() }
+
+// GetEdition returns the edition of the file this object belongs to
+func (c *common) GetEdition() descriptorpb.Edition { return c.file.GetEdition() }
+
+// IsEditions returns whether or not this object belongs to a file using editions syntax
+func (c *common) IsEditions() bool { return c.file.IsEditions() }
 
 func getOptions(options proto.Message) (m map[string]any) {
 	// In protobuf v2, we need to access extension fields through reflection
@@ -274,14 +266,103 @@ func (c *common) setOptions(options proto.Message) {
 
 // FileDescriptor methods
 
-// IsProto3 returns whether or not this file is a proto3 file
-func (f *FileDescriptor) IsProto3() bool { return f.GetSyntax() == "proto3" }
+// IsProto3 returns whether or not this file is a proto3 file or uses proto3-like semantics
+func (f *FileDescriptor) IsProto3() bool {
+	// Original proto3 syntax
+	if f.GetSyntax() == "proto3" {
+		return true
+	}
+	// Editions with proto3-like behavior (IMPLICIT field presence) match proto3 semantics
+	if f.IsEditions() {
+		if options := f.GetOptions(); options != nil {
+			if features := options.GetFeatures(); features != nil {
+				return features.GetFieldPresence() == descriptorpb.FeatureSet_IMPLICIT
+			}
+		}
+	}
+	return false
+}
+
+// GetEdition returns the edition of this file
+func (f *FileDescriptor) GetEdition() descriptorpb.Edition { return f.FileDescriptorProto.GetEdition() }
+
+// IsEditions returns whether or not this file uses the editions syntax
+func (f *FileDescriptor) IsEditions() bool { return f.GetSyntax() == "editions" }
+
+// GetEditionName returns the edition name as a string (e.g., "2023", "2024")
+func (f *FileDescriptor) GetEditionName() string {
+	if !f.IsEditions() {
+		return ""
+	}
+	switch f.GetEdition() {
+	case descriptorpb.Edition_EDITION_2023:
+		return "2023"
+	case descriptorpb.Edition_EDITION_2024:
+		return "2024"
+	case descriptorpb.Edition_EDITION_PROTO2:
+		return "proto2"
+	case descriptorpb.Edition_EDITION_PROTO3:
+		return "proto3"
+	case descriptorpb.Edition_EDITION_UNKNOWN, descriptorpb.Edition_EDITION_LEGACY:
+		return "unknown"
+	case descriptorpb.Edition_EDITION_1_TEST_ONLY:
+		return "1_test_only"
+	case descriptorpb.Edition_EDITION_2_TEST_ONLY:
+		return "2_test_only"
+	case descriptorpb.Edition_EDITION_99997_TEST_ONLY:
+		return "99997_test_only"
+	case descriptorpb.Edition_EDITION_99998_TEST_ONLY:
+		return "99998_test_only"
+	case descriptorpb.Edition_EDITION_99999_TEST_ONLY:
+		return "99999_test_only"
+	case descriptorpb.Edition_EDITION_MAX:
+		return "max"
+	default:
+		return f.GetEdition().String()
+	}
+}
 
 // GetPackageComments returns the file's package comments
 func (f *FileDescriptor) GetPackageComments() *Comment { return f.PackageComments }
 
 // GetSyntaxComments returns the file's syntax comments
 func (f *FileDescriptor) GetSyntaxComments() *Comment { return f.SyntaxComments }
+
+// GetEditionComments returns the file's edition comments
+func (f *FileDescriptor) GetEditionComments() *Comment { return f.EditionComments }
+
+// HasExplicitFieldPresence returns whether this file defaults to explicit field presence
+// In editions 2023+, field presence is explicit by default (like proto2)
+// In proto3, field presence is implicit by default
+func (f *FileDescriptor) HasExplicitFieldPresence() bool {
+	if f.IsEditions() {
+		// Check custom field presence setting in editions
+		if options := f.GetOptions(); options != nil {
+			if features := options.GetFeatures(); features != nil {
+				switch features.GetFieldPresence() {
+				case descriptorpb.FeatureSet_IMPLICIT:
+					return false
+				case descriptorpb.FeatureSet_EXPLICIT, descriptorpb.FeatureSet_LEGACY_REQUIRED:
+					return true
+				case descriptorpb.FeatureSet_FIELD_PRESENCE_UNKNOWN:
+					// Fall through to default behavior
+				}
+			}
+		}
+		// Editions 2023+ default to explicit field presence
+		return true
+	}
+	// proto2 has explicit field presence, proto3 has implicit
+	return f.GetSyntax() == "proto2"
+}
+
+// GetSyntaxType returns a more detailed syntax classification
+func (f *FileDescriptor) GetSyntaxType() string {
+	if f.IsEditions() {
+		return "editions"
+	}
+	return f.GetSyntax()
+}
 
 // GetEnums returns the top-level enumerations defined in this file
 func (f *FileDescriptor) GetEnums() []*EnumDescriptor { return f.Enums }
@@ -471,3 +552,18 @@ func (m *MethodDescriptor) GetComments() *Comment { return m.Comments }
 
 // GetService returns the service descriptor that defines this method
 func (m *MethodDescriptor) GetService() *ServiceDescriptor { return m.Service }
+
+// newCommon creates a new common struct with the given parameters.
+func newCommon(f *FileDescriptor, path, longName string) common {
+	fn := longName
+	if !strings.HasPrefix(fn, ".") {
+		fn = fmt.Sprintf("%s.%s", f.GetPackage(), longName)
+	}
+
+	return common{
+		file:     f,
+		path:     path,
+		LongName: longName,
+		FullName: fn,
+	}
+}
