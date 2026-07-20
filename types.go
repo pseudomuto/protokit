@@ -5,9 +5,9 @@ import (
 	"maps"
 	"strings"
 
-	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -42,6 +42,10 @@ type (
 		Services   []*ServiceDescriptor
 
 		OptionExtensions map[string]any
+
+		// optResolver resolves extensions defined in the parsed descriptor set so option
+		// extensions can be decoded without the consumer registering them globally.
+		optResolver extResolver
 	}
 
 	// An EnumDescriptor describe an enum type
@@ -127,13 +131,91 @@ func (c *common) GetEdition() descriptorpb.Edition { return c.file.GetEdition() 
 // IsEditions returns whether or not this object belongs to a file using editions syntax
 func (c *common) IsEditions() bool { return c.file.IsEditions() }
 
-func getOptions(options proto.Message) (m map[string]any) {
-	// In protobuf v2, we need to access extension fields through reflection
-	// and parse unknown fields that contain extension data
-	msg := options.ProtoReflect()
+// extResolver resolves extension and message types when decoding option extensions. Both
+// *protoregistry.Types (e.g. protoregistry.GlobalTypes) and *dynamicpb.Types satisfy it, and it
+// matches the resolver expected by proto.UnmarshalOptions.
+type extResolver interface {
+	protoregistry.MessageTypeResolver
+	protoregistry.ExtensionTypeResolver
+}
 
-	// First, check for any known extension fields that are set
-	msg.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+// combinedResolver tries a primary resolver first, then a fallback. This lets us prefer concrete
+// Go types registered in the global registry (so consumers that import generated extension packages
+// still get concrete values) while falling back to types derived from the parsed descriptor set (so
+// extensions that were never registered globally still decode, as dynamic values).
+type combinedResolver struct {
+	primary  extResolver
+	fallback extResolver
+}
+
+func (r *combinedResolver) FindExtensionByName(field protoreflect.FullName) (protoreflect.ExtensionType, error) {
+	if r.primary != nil {
+		if et, err := r.primary.FindExtensionByName(field); err == nil {
+			return et, nil
+		}
+	}
+	if r.fallback != nil {
+		return r.fallback.FindExtensionByName(field)
+	}
+	return nil, protoregistry.NotFound
+}
+
+func (r *combinedResolver) FindExtensionByNumber(message protoreflect.FullName, field protoreflect.FieldNumber) (protoreflect.ExtensionType, error) {
+	if r.primary != nil {
+		if et, err := r.primary.FindExtensionByNumber(message, field); err == nil {
+			return et, nil
+		}
+	}
+	if r.fallback != nil {
+		return r.fallback.FindExtensionByNumber(message, field)
+	}
+	return nil, protoregistry.NotFound
+}
+
+func (r *combinedResolver) FindMessageByName(name protoreflect.FullName) (protoreflect.MessageType, error) {
+	if r.primary != nil {
+		if mt, err := r.primary.FindMessageByName(name); err == nil {
+			return mt, nil
+		}
+	}
+	if r.fallback != nil {
+		return r.fallback.FindMessageByName(name)
+	}
+	return nil, protoregistry.NotFound
+}
+
+func (r *combinedResolver) FindMessageByURL(url string) (protoreflect.MessageType, error) {
+	if r.primary != nil {
+		if mt, err := r.primary.FindMessageByURL(url); err == nil {
+			return mt, nil
+		}
+	}
+	if r.fallback != nil {
+		return r.fallback.FindMessageByURL(url)
+	}
+	return nil, protoregistry.NotFound
+}
+
+// getOptions decodes the extension fields set on an options message, keyed by the extension's full
+// name. It re-decodes the options bytes using the supplied resolver so that extensions defined in
+// the parsed descriptor set are recognized even when they were not registered in the global type
+// registry. Values are returned as protoreflect.Value.Interface() results: proto2 optional scalars
+// come back by value (e.g. bool, not *bool), and message-typed extensions come back as a proto
+// message (a concrete registered type when available, otherwise a *dynamicpb.Message).
+func getOptions(res extResolver, options proto.Message) (m map[string]any) {
+	// Re-decode against the resolver. The options message we receive was unmarshaled with the
+	// global registry, so extensions unknown to it sit in the unknown fields. Round-tripping the
+	// raw bytes through the resolver promotes those to proper extension fields.
+	if res != nil {
+		if raw, err := proto.Marshal(options); err == nil {
+			decoded := options.ProtoReflect().New().Interface()
+			if err := (proto.UnmarshalOptions{Resolver: res}).Unmarshal(raw, decoded); err == nil {
+				options = decoded
+			}
+		}
+	}
+
+	options.ProtoReflect().Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
 		if fd.IsExtension() {
 			if m == nil {
 				m = make(map[string]any)
@@ -143,118 +225,11 @@ func getOptions(options proto.Message) (m map[string]any) {
 		return true
 	})
 
-	// For custom extensions that might not be registered, we need to parse
-	// the unknown fields. This is more complex in v2 but necessary for
-	// backward compatibility with v1 behavior.
-	unknownFields := msg.GetUnknown()
-	if len(unknownFields) > 0 {
-		// Parse known extension field numbers for this message type
-		extensions := getKnownExtensions(options)
-		for fieldNum, extInfo := range extensions {
-			if value := parseExtensionFromUnknown(unknownFields, fieldNum, extInfo.wireType); value != nil {
-				if m == nil {
-					m = make(map[string]any)
-				}
-				m[extInfo.name] = value
-			}
-		}
-	}
-
 	return m
 }
 
-// ExtensionInfo holds information about known extensions
-type ExtensionInfo struct {
-	name     string
-	wireType int
-}
-
-// getKnownExtensions returns a map of field numbers to extension info for common protobuf options
-func getKnownExtensions(options proto.Message) map[int32]ExtensionInfo {
-	extensions := make(map[int32]ExtensionInfo)
-
-	// Define the known extensions based on the test proto files
-	// These correspond to the extensions defined in extend.proto
-	switch options.(type) {
-	case *descriptorpb.FileOptions:
-		extensions[20000] = ExtensionInfo{"com.pseudomuto.protokit.v1.extend_file", int(protowire.VarintType)} // varint
-	case *descriptorpb.ServiceOptions:
-		extensions[20000] = ExtensionInfo{"com.pseudomuto.protokit.v1.extend_service", int(protowire.VarintType)} // varint
-	case *descriptorpb.MethodOptions:
-		extensions[20000] = ExtensionInfo{"com.pseudomuto.protokit.v1.extend_method", int(protowire.VarintType)} // varint
-	case *descriptorpb.MessageOptions:
-		extensions[20000] = ExtensionInfo{"com.pseudomuto.protokit.v1.extend_message", int(protowire.VarintType)} // varint
-	case *descriptorpb.FieldOptions:
-		extensions[20000] = ExtensionInfo{"com.pseudomuto.protokit.v1.extend_field", int(protowire.VarintType)} // varint
-	case *descriptorpb.EnumOptions:
-		extensions[20000] = ExtensionInfo{"com.pseudomuto.protokit.v1.extend_enum", int(protowire.VarintType)} // varint
-	case *descriptorpb.EnumValueOptions:
-		extensions[20000] = ExtensionInfo{"com.pseudomuto.protokit.v1.extend_enum_value", int(protowire.VarintType)} // varint
-	}
-
-	return extensions
-}
-
-// parseExtensionFromUnknown attempts to parse an extension value from unknown fields
-func parseExtensionFromUnknown(unknownFields protoreflect.RawFields, fieldNum int32, wireType int) any {
-	// This is a simplified parser for boolean extensions (wire type 0 - varint)
-	// In a full implementation, you'd need to handle all wire types
-	if wireType != int(protowire.VarintType) {
-		return nil // Only handle varint for now
-	}
-
-	// Parse the unknown fields looking for our field number
-	for len(unknownFields) > 0 {
-		fieldNumParsed, wireTypeParsed, fieldData := parseField(unknownFields)
-		if fieldNumParsed == fieldNum && wireTypeParsed == int(protowire.VarintType) {
-			// Parse varint (boolean in our case)
-			if len(fieldData) > 0 && fieldData[0] == 1 {
-				val := true
-				return &val
-			} else if len(fieldData) > 0 && fieldData[0] == 0 {
-				val := false
-				return &val
-			}
-		}
-		// Skip this field and continue
-		unknownFields = unknownFields[len(unknownFields)-len(fieldData):]
-		if len(unknownFields) == 0 {
-			break
-		}
-	}
-
-	return nil
-}
-
-// parseField parses a single field from raw protobuf data
-// Returns field number, wire type, and remaining data
-func parseField(data protoreflect.RawFields) (int32, int, protoreflect.RawFields) {
-	if len(data) == 0 {
-		return 0, 0, nil
-	}
-
-	// Parse the tag (field number and wire type)
-	fieldNum, wireType, n := protowire.ConsumeTag([]byte(data))
-	if n <= 0 {
-		return 0, 0, nil
-	}
-	data = data[n:]
-
-	// For varint (wire type 0), parse the value
-	if wireType == protowire.VarintType {
-		_, valueLen := protowire.ConsumeVarint([]byte(data))
-		if valueLen <= 0 {
-			return int32(fieldNum), int(wireType), nil
-		}
-		return int32(fieldNum), int(wireType), data[:valueLen]
-	}
-
-	// For other wire types, we'd need more complex parsing (YAGNI).
-	return int32(fieldNum), int(wireType), data
-}
-
 func (c *common) setOptions(options proto.Message) {
-	if opts := getOptions(options); len(opts) > 0 {
+	if opts := getOptions(c.file.optResolver, options); len(opts) > 0 {
 		if c.OptionExtensions == nil {
 			c.OptionExtensions = opts
 			return
@@ -413,7 +388,7 @@ func (f *FileDescriptor) GetService(name string) *ServiceDescriptor {
 }
 
 func (f *FileDescriptor) setOptions(options proto.Message) {
-	if opts := getOptions(options); len(opts) > 0 {
+	if opts := getOptions(f.optResolver, options); len(opts) > 0 {
 		if f.OptionExtensions == nil {
 			f.OptionExtensions = opts
 			return
