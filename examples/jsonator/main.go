@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"log"
 
-	"google.golang.org/protobuf/proto"
-	pluginpb "google.golang.org/protobuf/types/pluginpb"
-	"github.com/pseudomuto/protokit"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	pluginpb "google.golang.org/protobuf/types/pluginpb"
+
+	"github.com/pseudomuto/protokit"
 )
 
 func main() {
@@ -38,8 +38,8 @@ func (p *plugin) Generate(req *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGen
 
 	resp := new(pluginpb.CodeGeneratorResponse)
 	resp.File = append(resp.File, &pluginpb.CodeGeneratorResponse_File{
-		Name:    proto.String("output.json"),
-		Content: proto.String(buf.String()),
+		Name:    new("output.json"),
+		Content: new(buf.String()),
 	})
 
 	return resp, nil

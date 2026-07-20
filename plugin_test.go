@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/pseudomuto/protokit"
-	"github.com/pseudomuto/protokit/utils"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 	pluginpb "google.golang.org/protobuf/types/pluginpb"
+
+	"github.com/pseudomuto/protokit"
+	"github.com/pseudomuto/protokit/utils"
 )
 
 func TestRunPlugin(t *testing.T) {
@@ -88,8 +89,8 @@ type OkPlugin struct{}
 func (op *OkPlugin) Generate(r *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGeneratorResponse, error) {
 	resp := new(pluginpb.CodeGeneratorResponse)
 	resp.File = append(resp.File, &pluginpb.CodeGeneratorResponse_File{
-		Name:    proto.String("myfile.out"),
-		Content: proto.String("someoutput"),
+		Name:    new("myfile.out"),
+		Content: new("someoutput"),
 	})
 
 	return resp, nil

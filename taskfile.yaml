@@ -28,7 +28,7 @@ tasks:
     desc: Run golangci-lint --fix on the codebase
     silent: true
     cmds:
-      - go tool modernize -fix -test ./...
+      - go fix ./...
       - golangci-lint run --fix
 
   test:

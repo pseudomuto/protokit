@@ -4,8 +4,9 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/pseudomuto/protokit/utils"
 	"github.com/stretchr/testify/require"
+
+	"github.com/pseudomuto/protokit/utils"
 )
 
 func TestCreateGenRequest(t *testing.T) {
