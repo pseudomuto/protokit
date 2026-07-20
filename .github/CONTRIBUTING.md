@@ -37,9 +37,11 @@ I don't want to be too dogmatic about this, but here are some general things I t
 * Test are defined in `<package>_test` packages to ensure only the public interface is tested.
 * If you export something, make sure you add appropriate godoc comments and tests.
 
-## Tagging a Release
+## Cutting a Release
 
-Releases are cut from a signed git tag. Pushing the tag triggers the release workflow, which runs goreleaser.
+Releases are cut by manually running the Release workflow; there's no need to create a tag locally.
 
-* Ensure you're on a clean master
-* Run `task tag:patch` (or `task tag:minor` / `task tag:major`) to bump, sign, and push the tag
+* Go to **Actions -> Release -> Run workflow**
+* Choose the bump type (`patch`, `minor`, or `major`)
+
+The workflow computes the next version from the latest `vX.Y.Z` tag, creates and pushes the tag, then runs goreleaser. Only maintainers with write access can trigger it.
