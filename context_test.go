@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/pseudomuto/protokit"
 	"github.com/stretchr/testify/require"
+
+	"github.com/pseudomuto/protokit"
 )
 
 func TestContextWithFileDescriptor(t *testing.T) {

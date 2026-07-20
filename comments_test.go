@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/pseudomuto/protokit"
 	"github.com/pseudomuto/protokit/utils"
-	"github.com/stretchr/testify/require"
 )
 
 func TestComments(t *testing.T) {

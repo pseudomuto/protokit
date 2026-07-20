@@ -3,9 +3,10 @@ package protokit_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/pseudomuto/protokit"
 	"github.com/pseudomuto/protokit/utils"
-	"github.com/stretchr/testify/require"
 )
 
 func setupParserTest(t *testing.T) (*protokit.FileDescriptor, *protokit.FileDescriptor) {

@@ -3,9 +3,9 @@ package protokit_test
 import (
 	"log"
 
-	"github.com/pseudomuto/protokit"
-	"google.golang.org/protobuf/proto"
 	pluginpb "google.golang.org/protobuf/types/pluginpb"
+
+	"github.com/pseudomuto/protokit"
 )
 
 type plugin struct{}
@@ -16,8 +16,8 @@ func (p *plugin) Generate(r *pluginpb.CodeGeneratorRequest) (*pluginpb.CodeGener
 
 	for _, desc := range descriptors {
 		resp.File = append(resp.File, &pluginpb.CodeGeneratorResponse_File{
-			Name:    proto.String(desc.GetName() + ".out"),
-			Content: proto.String("Some relevant output"),
+			Name:    new(desc.GetName() + ".out"),
+			Content: new("Some relevant output"),
 		})
 	}
 
