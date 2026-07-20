@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/pseudomuto/protokit"
 	"github.com/pseudomuto/protokit/utils"
@@ -245,6 +246,19 @@ func TestExtendedOptions(t *testing.T) {
 	extendedValue, ok := proto2.OptionExtensions["com.pseudomuto.protokit.v1.extend_file"].(bool)
 	require.True(t, ok)
 	require.True(t, extendedValue)
+
+	// A non-varint (string) extension, decoded from the descriptor set without global registration.
+	label, ok := proto2.OptionExtensions["com.pseudomuto.protokit.v1.extend_file_label"].(string)
+	require.True(t, ok)
+	require.Equal(t, "booking-label", label)
+
+	// A message-typed extension. It isn't registered globally, so it's decoded from the descriptor
+	// set as a dynamic message whose fields are still readable via reflection.
+	details, ok := proto2.OptionExtensions["com.pseudomuto.protokit.v1.extend_file_details"].(proto.Message)
+	require.True(t, ok)
+	dm := details.ProtoReflect()
+	require.Equal(t, "details-note", dm.Get(dm.Descriptor().Fields().ByName("note")).String())
+	require.EqualValues(t, 7, dm.Get(dm.Descriptor().Fields().ByName("rank")).Int())
 
 	service := proto2.GetService("BookingService")
 	require.Contains(t, service.OptionExtensions, "com.pseudomuto.protokit.v1.extend_service")

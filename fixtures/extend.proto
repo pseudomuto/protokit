@@ -5,10 +5,21 @@ import "google/protobuf/descriptor.proto";
 package com.pseudomuto.protokit.v1;
 
 /**
+ * A message used by a message-typed file option extension. Exercises decoding of
+ * extensions whose value is a message rather than a scalar.
+ */
+message ExtendDetails {
+  optional string note = 1;
+  optional int32 rank = 2;
+}
+
+/**
  * Extension of protobuf file options.
  */
  extend google.protobuf.FileOptions {
   optional bool extend_file = 20000;
+  optional string extend_file_label = 20001;
+  optional ExtendDetails extend_file_details = 20002;
 }
 
 /**

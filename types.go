@@ -204,9 +204,11 @@ func (r *combinedResolver) FindMessageByURL(url string) (protoreflect.MessageTyp
 // message (a concrete registered type when available, otherwise a *dynamicpb.Message).
 func getOptions(res extResolver, options proto.Message) (m map[string]any) {
 	// Re-decode against the resolver. The options message we receive was unmarshaled with the
-	// global registry, so extensions unknown to it sit in the unknown fields. Round-tripping the
-	// raw bytes through the resolver promotes those to proper extension fields.
-	if res != nil {
+	// global registry, so globally-registered extensions are already present as known fields and
+	// only unregistered extensions sit in the unknown fields. Round-tripping the raw bytes through
+	// the resolver promotes those to proper extension fields; skip it entirely when there are no
+	// unknown fields, since there is then nothing to promote.
+	if res != nil && len(options.ProtoReflect().GetUnknown()) > 0 {
 		if raw, err := proto.Marshal(options); err == nil {
 			decoded := options.ProtoReflect().New().Interface()
 			if err := (proto.UnmarshalOptions{Resolver: res}).Unmarshal(raw, decoded); err == nil {
