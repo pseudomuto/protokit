@@ -6,7 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/dynamicpb"
 	pluginpb "google.golang.org/protobuf/types/pluginpb"
 )
 
@@ -43,8 +46,10 @@ func ParseCodeGenRequest(req *pluginpb.CodeGeneratorRequest) []*FileDescriptor {
 	allFiles := make(map[string]*FileDescriptor)
 	genFiles := make([]*FileDescriptor, len(req.GetFileToGenerate()))
 
+	res := buildExtensionResolver(req.GetProtoFile())
+
 	for _, pf := range req.GetProtoFile() {
-		allFiles[pf.GetName()] = parseFile(context.Background(), pf)
+		allFiles[pf.GetName()] = parseFile(context.Background(), res, pf)
 	}
 
 	for i, f := range req.GetFileToGenerate() {
@@ -55,7 +60,21 @@ func ParseCodeGenRequest(req *pluginpb.CodeGeneratorRequest) []*FileDescriptor {
 	return genFiles
 }
 
-func parseFile(ctx context.Context, fd *descriptorpb.FileDescriptorProto) *FileDescriptor {
+// buildExtensionResolver builds a resolver used to decode option extensions. It prefers concrete
+// types from the global registry and falls back to types derived from the request's descriptor set,
+// so consumers no longer need to register their extensions globally before parsing. If the set is
+// incomplete (protodesc.NewFiles fails), it degrades to the global registry alone.
+func buildExtensionResolver(protos []*descriptorpb.FileDescriptorProto) extResolver {
+	res := &combinedResolver{primary: protoregistry.GlobalTypes}
+
+	if files, err := protodesc.NewFiles(&descriptorpb.FileDescriptorSet{File: protos}); err == nil {
+		res.fallback = dynamicpb.NewTypes(files)
+	}
+
+	return res
+}
+
+func parseFile(ctx context.Context, res extResolver, fd *descriptorpb.FileDescriptorProto) *FileDescriptor {
 	comments := ParseComments(fd)
 
 	file := &FileDescriptor{
@@ -64,6 +83,7 @@ func parseFile(ctx context.Context, fd *descriptorpb.FileDescriptorProto) *FileD
 		PackageComments:     comments.Get(strconv.Itoa(packageCommentPath)),
 		SyntaxComments:      comments.Get(strconv.Itoa(syntaxCommentPath)),
 		EditionComments:     comments.Get(strconv.Itoa(editionCommentPath)),
+		optResolver:         res,
 	}
 
 	if fd.Options != nil {

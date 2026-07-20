@@ -124,6 +124,84 @@ url = "https://github.com/goreleaser/goreleaser/releases/download/v2.17.0/gorele
 url_api = "https://api.github.com/repos/goreleaser/goreleaser/releases/assets/466714129"
 provenance = "github-attestations"
 
+[[tools.protoc]]
+version = "35.1"
+backend = "aqua:protocolbuffers/protobuf/protoc"
+
+[tools.protoc."platforms.linux-arm64"]
+checksum = "sha256:01bf9d08808c7f96678b63f4bd8efa559bb4f83d5a7a270d5edaf507f9d5d9cf"
+url = "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-linux-aarch_64.zip"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/445060236"
+
+[tools.protoc."platforms.linux-arm64-musl"]
+checksum = "sha256:01bf9d08808c7f96678b63f4bd8efa559bb4f83d5a7a270d5edaf507f9d5d9cf"
+url = "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-linux-aarch_64.zip"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/445060236"
+
+[tools.protoc."platforms.linux-x64"]
+checksum = "sha256:6930ebf62bd4ea607b98fff052596c6ee564b9835b4ce172c75a3f53ae9d91b7"
+url = "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-linux-x86_64.zip"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/445060247"
+
+[tools.protoc."platforms.linux-x64-musl"]
+checksum = "sha256:6930ebf62bd4ea607b98fff052596c6ee564b9835b4ce172c75a3f53ae9d91b7"
+url = "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-linux-x86_64.zip"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/445060247"
+
+[tools.protoc."platforms.macos-arm64"]
+checksum = "sha256:193289af0470c6a1aada357d4fba0bbf8d78bfaac8b5e42ca30af2ef75583de2"
+url = "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-osx-aarch_64.zip"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/445060249"
+
+[tools.protoc."platforms.macos-x64"]
+checksum = "sha256:537d73604a344ded6fc94e98e07e529d4fe3e4a0b09e59905353950fafc2a1f7"
+url = "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-osx-x86_64.zip"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/445060254"
+
+[tools.protoc."platforms.windows-x64"]
+checksum = "sha256:5d3ff218d7d91eea95f7569bcb5a98f3030f8996d44151279d9772edcff76082"
+url = "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-win64.zip"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf/releases/assets/445060259"
+
+[[tools.protoc-gen-go]]
+version = "1.36.11"
+backend = "aqua:protocolbuffers/protobuf-go/protoc-gen-go"
+
+[tools.protoc-gen-go."platforms.linux-arm64"]
+checksum = "sha256:8760755b06cbfe6e64478bbe16b60e518d89d059ccaf667df05398d19636cbad"
+url = "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.36.11/protoc-gen-go.v1.36.11.linux.arm64.tar.gz"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf-go/releases/assets/327772541"
+
+[tools.protoc-gen-go."platforms.linux-arm64-musl"]
+checksum = "sha256:8760755b06cbfe6e64478bbe16b60e518d89d059ccaf667df05398d19636cbad"
+url = "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.36.11/protoc-gen-go.v1.36.11.linux.arm64.tar.gz"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf-go/releases/assets/327772541"
+
+[tools.protoc-gen-go."platforms.linux-x64"]
+checksum = "sha256:6ad8f8fc11b96dc4deb176f7ee84af40e15d32e4608594bcc3534b7824a3dc71"
+url = "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.36.11/protoc-gen-go.v1.36.11.linux.amd64.tar.gz"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf-go/releases/assets/327772540"
+
+[tools.protoc-gen-go."platforms.linux-x64-musl"]
+checksum = "sha256:6ad8f8fc11b96dc4deb176f7ee84af40e15d32e4608594bcc3534b7824a3dc71"
+url = "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.36.11/protoc-gen-go.v1.36.11.linux.amd64.tar.gz"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf-go/releases/assets/327772540"
+
+[tools.protoc-gen-go."platforms.macos-arm64"]
+checksum = "sha256:31a1c65833213a925f6771dd84b749ac5b3f4de30be3694d8ec19e23fc44acbf"
+url = "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.36.11/protoc-gen-go.v1.36.11.darwin.arm64.tar.gz"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf-go/releases/assets/327772537"
+
+[tools.protoc-gen-go."platforms.macos-x64"]
+checksum = "sha256:e41b9fc3e6b80a943caee6736f8f764e1059fb6ff9ef4f423b62645a9abc8f9f"
+url = "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.36.11/protoc-gen-go.v1.36.11.darwin.amd64.tar.gz"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf-go/releases/assets/327772533"
+
+[tools.protoc-gen-go."platforms.windows-x64"]
+checksum = "sha256:045cac56df5fae04912d39b1e9f8e568f8a1eaf0adc800a6e8bfbe97fd1bef9c"
+url = "https://github.com/protocolbuffers/protobuf-go/releases/download/v1.36.11/protoc-gen-go.v1.36.11.windows.amd64.zip"
+url_api = "https://api.github.com/repos/protocolbuffers/protobuf-go/releases/assets/327772547"
+
 [[tools.task]]
 version = "3.52.0"
 backend = "aqua:go-task/task"

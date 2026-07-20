@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/pseudomuto/protokit"
 	"github.com/pseudomuto/protokit/utils"
@@ -242,100 +243,113 @@ func TestExtendedOptions(t *testing.T) {
 
 	require.Contains(t, proto2.OptionExtensions, "com.pseudomuto.protokit.v1.extend_file")
 
-	extendedValue, ok := proto2.OptionExtensions["com.pseudomuto.protokit.v1.extend_file"].(*bool)
+	extendedValue, ok := proto2.OptionExtensions["com.pseudomuto.protokit.v1.extend_file"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
+
+	// A non-varint (string) extension, decoded from the descriptor set without global registration.
+	label, ok := proto2.OptionExtensions["com.pseudomuto.protokit.v1.extend_file_label"].(string)
+	require.True(t, ok)
+	require.Equal(t, "booking-label", label)
+
+	// A message-typed extension. It isn't registered globally, so it's decoded from the descriptor
+	// set as a dynamic message whose fields are still readable via reflection.
+	details, ok := proto2.OptionExtensions["com.pseudomuto.protokit.v1.extend_file_details"].(proto.Message)
+	require.True(t, ok)
+	dm := details.ProtoReflect()
+	require.Equal(t, "details-note", dm.Get(dm.Descriptor().Fields().ByName("note")).String())
+	require.EqualValues(t, 7, dm.Get(dm.Descriptor().Fields().ByName("rank")).Int())
 
 	service := proto2.GetService("BookingService")
 	require.Contains(t, service.OptionExtensions, "com.pseudomuto.protokit.v1.extend_service")
 
-	extendedValue, ok = service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(*bool)
+	extendedValue, ok = service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	method := service.GetNamedMethod("BookVehicle")
 	require.Contains(t, method.OptionExtensions, "com.pseudomuto.protokit.v1.extend_method")
 
-	extendedValue, ok = method.OptionExtensions["com.pseudomuto.protokit.v1.extend_method"].(*bool)
+	extendedValue, ok = method.OptionExtensions["com.pseudomuto.protokit.v1.extend_method"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	message := proto2.GetMessage("Booking")
 	require.Contains(t, message.OptionExtensions, "com.pseudomuto.protokit.v1.extend_message")
 
-	extendedValue, ok = message.OptionExtensions["com.pseudomuto.protokit.v1.extend_message"].(*bool)
+	extendedValue, ok = message.OptionExtensions["com.pseudomuto.protokit.v1.extend_message"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	field := message.GetMessageField("payment_received")
 	require.Contains(t, field.OptionExtensions, "com.pseudomuto.protokit.v1.extend_field")
 
-	extendedValue, ok = field.OptionExtensions["com.pseudomuto.protokit.v1.extend_field"].(*bool)
+	extendedValue, ok = field.OptionExtensions["com.pseudomuto.protokit.v1.extend_field"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	enum := proto2.GetEnum("BookingType")
 	require.Contains(t, enum.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum")
 
-	extendedValue, ok = enum.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum"].(*bool)
+	extendedValue, ok = enum.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	enumValue := enum.GetNamedValue("FUTURE")
 	require.Contains(t, enumValue.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum_value")
 
-	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(*bool)
+	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	_, proto3 := setupParserTest(t)
 	require.Contains(t, proto3.OptionExtensions, "com.pseudomuto.protokit.v1.extend_file")
 
-	extendedValue, ok = proto3.OptionExtensions["com.pseudomuto.protokit.v1.extend_file"].(*bool)
+	extendedValue, ok = proto3.OptionExtensions["com.pseudomuto.protokit.v1.extend_file"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	service = proto3.GetService("Todo")
 	require.Contains(t, service.OptionExtensions, "com.pseudomuto.protokit.v1.extend_service")
 
-	extendedValue, ok = service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(*bool)
+	extendedValue, ok = service.OptionExtensions["com.pseudomuto.protokit.v1.extend_service"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	method = service.GetNamedMethod("CreateList")
 	require.Contains(t, method.OptionExtensions, "com.pseudomuto.protokit.v1.extend_method")
 
-	extendedValue, ok = method.OptionExtensions["com.pseudomuto.protokit.v1.extend_method"].(*bool)
+	extendedValue, ok = method.OptionExtensions["com.pseudomuto.protokit.v1.extend_method"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	message = proto3.GetMessage("List")
 	require.Contains(t, message.OptionExtensions, "com.pseudomuto.protokit.v1.extend_message")
 
-	extendedValue, ok = message.OptionExtensions["com.pseudomuto.protokit.v1.extend_message"].(*bool)
+	extendedValue, ok = message.OptionExtensions["com.pseudomuto.protokit.v1.extend_message"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	field = message.GetMessageField("name")
 	require.Contains(t, field.OptionExtensions, "com.pseudomuto.protokit.v1.extend_field")
 
-	extendedValue, ok = field.OptionExtensions["com.pseudomuto.protokit.v1.extend_field"].(*bool)
+	extendedValue, ok = field.OptionExtensions["com.pseudomuto.protokit.v1.extend_field"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	enum = proto3.GetEnum("ListType")
 	require.Contains(t, enum.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum")
 
-	extendedValue, ok = enum.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum"].(*bool)
+	extendedValue, ok = enum.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 
 	enumValue = enum.GetNamedValue("CHECKLIST")
 	require.Contains(t, enumValue.OptionExtensions, "com.pseudomuto.protokit.v1.extend_enum_value")
 
-	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(*bool)
+	extendedValue, ok = enumValue.OptionExtensions["com.pseudomuto.protokit.v1.extend_enum_value"].(bool)
 	require.True(t, ok)
-	require.True(t, *extendedValue)
+	require.True(t, extendedValue)
 }
 
 func setupEditionsTest(t *testing.T) (*protokit.FileDescriptor, *protokit.FileDescriptor) {
